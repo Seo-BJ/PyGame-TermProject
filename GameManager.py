@@ -4,6 +4,7 @@ from pygame.locals import *
 from gameSetting import *
 from player import Player
 from projectile import Projectile
+from menu import Menu
 #from enemy import *
 
 # Initialize pygame
@@ -13,10 +14,16 @@ pygame.init()
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
 # Set up the display
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Top Down Shooter")
 clock = pygame.time.Clock()
+
+# Create Menu instance and start with the main menu
+menu = Menu(screen)
+menu.start_menu()
 
 # Player settings
 player_size = 50
@@ -37,7 +44,44 @@ PROJECTILE_IMAGE_PATH = 'projectile.png'
 background = pygame.image.load("background.png").convert()
 
 
+# UI
 
+def draw_health_bar(screen, pos, size, border_color, inner_color, current, max_health):
+    border_rect = pygame.Rect(pos, size)
+    inner_rect = pygame.Rect(pos, (size[0] * (current / max_health), size[1]))
+    pygame.draw.rect(screen, border_color, border_rect, 2)  # Draw border
+    pygame.draw.rect(screen, inner_color, inner_rect)  # Draw inner health bar
+
+# Reset Game
+def reset_game():
+    # Reset player state
+    player.current_hp = player.max_hp
+    player.pos = pygame.math.Vector2(PLAYER_START)
+    player.velocity_x = 0
+    player.velocity_y = 0
+    player.rect.center = player.pos
+
+    # Clear all sprites from groups
+    for group in [all_sprites_group, enemy_group, projectile_group]:
+        for entity in group:
+            entity.kill()  # This will remove the sprite from all groups
+
+    # Reinitialize or reset other game state as necessary
+    # For example, if you have a score or level system, reset it here
+    # score = 0
+    # level = 1
+
+    # Reset the spawn timer for enemies
+    global last_enemy_spawn_time
+    last_enemy_spawn_time = pygame.time.get_ticks()
+
+    # Add the player back to the all_sprites_group
+    all_sprites_group.add(player)
+
+    # Reset any other game state variables here
+    # ...
+
+# ... [Your existing code] ...
 
 def generate_chunk(x, y):
     """ Generate a new chunk at the given (x, y) position """
@@ -115,10 +159,15 @@ enemy_group = pygame.sprite.Group()
 # Player, Camera
 player = Player()
 camera = Camera()
-enemy = Enemy((400, 400))
+#enemy = Enemy((400, 400))
 
 all_sprites_group.add(player)
 
+# Spawn Manage
+last_enemy_spawn_time = pygame.time.get_ticks()
+
+# Game Start before the game loop
+menu.start_menu()
 
 # Game loop
 running = True
@@ -139,10 +188,59 @@ while running:
         else:
             player.shoot = False   
 
-    # screen.blit(background, (0,0))
+    # Game Over Event
+    if player.current_hp <= 0:
+        print("Player health is zero, calling game_over")  # Debugging print
+        action = menu.game_over()
+        print(f"Game over action: {action}")  # Debugging print
+        if action == 'exit':
+            running = False
+        elif action == 'restart':
+            reset_game()  # Reset the game state
+            menu.start_menu()  # Show the start menu again
+            running = True  # Set running to True to restart the game loo
 
+    # Enemy Spawn
+    current_time = pygame.time.get_ticks()
+    if current_time - last_enemy_spawn_time > ENEMY_SPAWN_INTERVAL:
+        last_enemy_spawn_time = current_time
+
+        directions = [
+            pygame.math.Vector2(1, 0),  # Right
+            pygame.math.Vector2(1, 1).normalize(),  # Down-Rightds
+            pygame.math.Vector2(0, 1),  # Down
+            pygame.math.Vector2(-1, 1).normalize(), # Down-Left
+            pygame.math.Vector2(-1, 0), # Left
+            pygame.math.Vector2(-1, -1).normalize(),# Up-Left
+            pygame.math.Vector2(0, -1), # Up
+            pygame.math.Vector2(1, -1).normalize(), # Up-Right
+        ]
+
+        for direction in directions:
+            spawn_distance = max(WIDTH, HEIGHT) * 1.5  
+            spawn_position = player.pos + direction * spawn_distance
+            enemy = Enemy(spawn_position)
+            #enemy_group.add(enemy)
+            #all_sprites_group.add(enemy)
+
+    # Hit Event
+    hits = pygame.sprite.spritecollide(player, enemy_group, False)
+    if hits:
+        player.take_damage(10)  # Example damage value
+    # UI
+    draw_health_bar(
+        screen,
+        (10, 10),  # Position of the health bar
+        (200, 20),  # Size of the health bar
+        (255, 0, 0),  # Color of the border (red)
+        (0, 255, 0),  # Color of the inner bar (green)
+        player.current_hp,
+        player.max_hp
+    )
+    # screen.blit(background, (0,0))
     camera.custom_draw()
     all_sprites_group.update()
+
 
 
     # Update the display, Cap the frame rate

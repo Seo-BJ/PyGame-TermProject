@@ -19,6 +19,10 @@ class Player(pygame.sprite.Sprite):
 
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFXET_X, GUN_OFFXET_Y)
 
+        # Player HP
+        self.max_hp = PLAYER_MAXHP
+        self.current_hp = self.max_hp
+
     def player_rotation(self):
         self.mouse_pos = pygame.mouse.get_pos()
         self.x_change_mouse_player = (self.mouse_pos[0] - WIDTH // 2)
@@ -47,11 +51,6 @@ class Player(pygame.sprite.Sprite):
             self.velocity_y /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
 
-        if pygame.mouse.get_pressed() == (1, 0, 0):
-            self.shoot = True
-            self.is_shooting()
-        else:
-             self.shoot = False   
 
                 
     def is_shooting(self):
@@ -61,11 +60,11 @@ class Player(pygame.sprite.Sprite):
             self.projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], self.angle)
 
             return self.projectile
-
-  
-
-
-
+        
+    def take_damage(self, amount):
+        self.current_hp -= amount
+        if self.current_hp <= 0:
+            self.current_hp = 0
 
     def move(self):
         self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
