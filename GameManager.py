@@ -122,7 +122,7 @@ projectile_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
 # Player, Camera
-player = Player()
+player = Player(projectile_group,all_sprites_group, enemy_group)
 camera = Camera()
 #enemy = Enemy((400, 400))
 
@@ -179,7 +179,7 @@ while running:
             #enemy_group.add(enemy)
             #all_sprites_group.add(enemy)
 
-    # Hit Event
+    # {;ayer Hit Event
     hits = pygame.sprite.spritecollide(player, enemy_group, False)
     if hits:
         player.take_damage(10)  # Example damage value
@@ -197,7 +197,9 @@ while running:
     camera.custom_draw()
     all_sprites_group.update()
 
-
+    # Projectile Hit Event
+    for projectile in projectile_group:
+        projectile.update()
 
     # Update the display, Cap the frame rate
     pygame.display.update()

@@ -4,8 +4,8 @@ from projectile import *
 from gameSetting import *
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, projectile_group, all_sprites_group, enemy_group):
+        super().__init__(all_sprites_group)
         self.pos = pygame.math.Vector2(PLAYER_START[0], PLAYER_START[1])
         self.image = pygame.image.load("player.png").convert_alpha()
         self.base_player_image = self.image
@@ -19,10 +19,21 @@ class Player(pygame.sprite.Sprite):
 
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFXET_X, GUN_OFFXET_Y)
 
-        # Player HP
-        self.max_hp = 100
+        # Group Initialize
+        self.projectile_group = projectile_group
+        self.all_sprites_group = all_sprites_group
+        self.enemy_group = enemy_group
+
+        # 플레이어 HP
+        self.max_hp = PLAYER_MAXHP
         self.current_hp = self.max_hp
 
+        # 플레이어 무적
+        self.invincible = False
+        self.invincible_time = 0
+        self.invincible_duration = PLAYER_INVINCIBLE_DURATION 
+
+    # 플레이어 회전
     def player_rotation(self):
         self.mouse_pos = pygame.mouse.get_pos()
         self.x_change_mouse_player = (self.mouse_pos[0] - WIDTH // 2)
@@ -31,6 +42,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.base_player_image, -self.angle)
         self.rect = self.image.get_rect(center = self.hitbox_rect.center)
 
+    # 플레이어 입력 처리
     def user_Input(self):
         self.velocity_x = 0
         self.velocity_y = 0
@@ -51,28 +63,48 @@ class Player(pygame.sprite.Sprite):
             self.velocity_y /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
 
+        if pygame.mouse.get_pressed() == (1, 0, 0) and self.shoot_cooldown == 0:
+            self.is_shooting()
+            self.shoot = True
+        else:
+            self.shoot = False   
 
-                
-    def is_shooting(self, projectile_group, all_sprites_group):
+    # 플레이어 Shoot State
+    def is_shooting(self):
         if self.shoot_cooldown == 0:
-            self.shoow_cooldown = SHOOT_COOLDOWN
-            spawn_projectile_pos = self.pos + self.gun_barrel_offset.rotate(self.angle)
-            self.projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], self.angle)
-            if pygame.mouse.get_pressed() == (1, 0, 0):
-                print("Left Mouse Button Clicked")
-                self.player.shoot = True
-                projectile_group.add(self.projectile)
-                all_sprites_group.add(self.projectile)
-            else:
-                self.player.shoot = False   
+            self.shoot_cooldown = SHOOT_COOLDOWN
+            spawn_projectile_pos = self.pos + self.gun_barrel_offset.rotate(-self.angle)
+            projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], self.angle, self.enemy_group)
+            self.projectile_group.add(projectile)
+            self.all_sprites_group.add(projectile)
 
-            return self.projectile
-        
+    # 플레이어 데미지 
     def take_damage(self, amount):
-        self.current_hp -= amount
-        if self.current_hp <= 0:
-            self.current_hp = 0
+        if not self.invincible:
+            self.current_hp -= amount
+            if self.current_hp <= 0:
+                self.current_hp = 0
+            else:
+                self.invincible = True
+                self.invincible_time = pygame.time.get_ticks()
+             
+        self.push_enemies_away(knockback_radius=100, knockback_strength=10)
 
+
+    # 플레이어가 적과 부딪히면 주변 적들을 잠깐 밀침
+    def push_enemies_away(self, knockback_radius, knockback_strength):
+        for enemy in self.enemy_group:
+            player_center = pygame.math.Vector2(self.rect.center)
+            enemy_center = pygame.math.Vector2(enemy.rect.center)
+            direction = enemy_center - player_center
+
+            if direction.length() == 0:  # Avoid division by zero
+                continue
+
+            if direction.length() <= knockback_radius:
+                enemy.take_damage(0, direction, knockback_strength)  # Apply knockback without dealing damage
+
+    # 플레이어 Move
     def move(self):
         self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
         self.hitbox_rect.center = self.pos
@@ -85,3 +117,6 @@ class Player(pygame.sprite.Sprite):
 
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
+
+        if self.invincible and pygame.time.get_ticks() - self.invincible_time > self.invincible_duration:
+            self.invincible = False
