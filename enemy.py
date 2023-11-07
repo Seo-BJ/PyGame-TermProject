@@ -44,17 +44,20 @@ class Enemy(pygame.sprite.Sprite):
     def get_vetcor_length(self, vector_1, vector_2):
         return (vector_1 - vector_2).magnitude()
     
+    def apply_knockback(self, knockback_direction, knockback_strength):
+        # Apply knockback effect
+        self.knockback_velocity = knockback_direction.normalize() * knockback_strength
+        self.knockback_duration = 15  # Number of frames to apply knockback
+
     def take_damage(self, amount, knockback_direction=None, knockback_strength=100):
         self.current_hp -= amount
         if self.current_hp <= 0:
             self.player.current_exp += 10
             self.kill()
-      
         else:
             # Apply knockback effect
             if knockback_direction is not None:
-                self.knockback_velocity = knockback_direction.normalize() * knockback_strength
-                self.knockback_duration = 120  # Number of frames to apply knockback
+                self.apply_knockback(knockback_direction, knockback_strength)
 
     def update(self):
         if self.knockback_duration > 0:

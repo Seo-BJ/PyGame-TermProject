@@ -188,16 +188,7 @@ while running:
     if hits:
         player.take_damage(10)  # Example damage value
     # UI
-    draw_health_bar(
-        screen,
-        (10, 10),  # Position of the health bar
-        (200, 20),  # Size of the health bar
-        (255, 0, 0),  # Color of the border (red)
-        (0, 255, 0),  # Color of the inner bar (green)
-        player.current_hp,
-        player.max_hp
-    )
-    gmae_ui.draw_allUI()
+    gmae_ui.draw_allUI(player)
 
     # screen.blit(background, (0,0))
     camera.custom_draw()

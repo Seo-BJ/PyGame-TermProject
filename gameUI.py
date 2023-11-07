@@ -59,7 +59,7 @@ class GameUI:
     def draw_health_bar(self):
         self.health_bar(self.screen,
         (10, 20),  # Position of the health bar
-        (200, 20),  # Size of the health bar
+        (200, 10),  # Size of the health bar
         (255, 0, 0),  # Color of the border (red)
         (0, 255, 0),  # Color of the inner bar (green)
         self.player_current_hp,
@@ -79,7 +79,11 @@ class GameUI:
         pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)  # Draw inner EXP bar
   
     
-    def draw_allUI(self):
+    def draw_allUI(self, player):
+        self.player_current_hp = player.current_hp
+        self.player_max_hp = player.max_hp
+        self.player_current_exp = player.current_exp
+        self.player_max_exp = player.max_exp  
         self.draw_exp_bar()
         self.draw_health_bar()
         self.draw_timer()

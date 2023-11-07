@@ -114,6 +114,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect.center = self.pos
         self.rect.center = self.hitbox_rect.center
 
+    # 플레이어 Update
     def update(self):
         self.user_Input()
         self.move()

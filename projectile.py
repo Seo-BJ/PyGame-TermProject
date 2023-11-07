@@ -3,7 +3,7 @@ import math
 from gameSetting import *
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self,x, y, angle, enemy_group):
+    def __init__(self,x, y, angle, enemy_group, knockback_intensity=10):
         super().__init__()
         self.image = pygame.image.load("projectile.png").convert_alpha()
         self.image = pygame.transform.rotozoom(self.image, 0, PROJECTILE_SCALE)
@@ -13,18 +13,20 @@ class Projectile(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.angle = angle
-        self.speed = PROJECTILE_SPEED
-        self.x_velocity = math.cos(self.angle * (2*math.pi/360))*self.speed
-        self.y_velocity = math.sin(self.angle * (2*math.pi/360))*self.speed
-
+        
+        # Projectile Stats
         self.lifetime = PROJECTILE_LIFETIME
         self.spawn_time = pygame.time.get_ticks()
-
-        # Projectile Stats
         self.damage = 10
         self.penetrate_count = 0  # Number of enemies penetrated
         self.max_penetrations = 2  # Maximum number of penetrations before disappearing
+        self.speed = PROJECTILE_SPEED
+        self.knockback_intensity = knockback_intensity
 
+        self.x_velocity = math.cos(self.angle * (2*math.pi/360))*self.speed
+        self.y_velocity = math.sin(self.angle * (2*math.pi/360))*self.speed
+
+        # Group Initialize
         self.enemy_group = enemy_group
 
     def projectile_movement(self):
@@ -42,8 +44,13 @@ class Projectile(pygame.sprite.Sprite):
 
         hits = pygame.sprite.spritecollide(self, self.enemy_group, False)
         for enemy in hits:
-            enemy.take_damage(self.damage)  # Damage the enemy
+            knockback_direction = pygame.math.Vector2()
+            knockback_direction.x = math.cos(math.radians(self.angle))
+            knockback_direction.y = math.sin(math.radians(self.angle))
+
+            enemy.take_damage(self.damage, knockback_direction, self.knockback_intensity)  
             self.penetrate_count += 1  # Increment penetration count
             if self.penetrate_count >= self.max_penetrations:
                 self.kill()  # Destroy the projectile after maximum penetrations
                 break  # Exit the loop after destroying the projectile
+        
