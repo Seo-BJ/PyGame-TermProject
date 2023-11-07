@@ -1,5 +1,6 @@
 import pygame
-import sys
+import gameSetting
+import random
 from pauseMenu import PauseMenu
 
 class LevelUpUI:
@@ -8,9 +9,16 @@ class LevelUpUI:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 74)
         self.font_small = pygame.font.Font(None, 50)
-        self.buttons = ["Button 1", "Button 2", "Button 3"]
         self.pause_menu = pause_menu
-
+        self.while_level_up = True
+        self.power_up_types = [
+            "Projectile_Penetration",
+            "Projectile_Power",
+            "Projectile_RapidFire",
+            "Player_Movement"
+        ]
+        self.isSwoing = False
+    
     def draw_button(self, text, center):
         text_render = self.font_small.render(text, True, (255, 255, 255))
         text_rect = text_render.get_rect(center=center)
@@ -18,20 +26,48 @@ class LevelUpUI:
         pygame.draw.rect(self.screen, (0, 255, 0), button_rect)
         self.screen.blit(text_render, text_rect)
         return button_rect
+ 
+    def show_level_up_buttons(self):
+        if not self.isSwoing:
+            self.isSwoing = True
+            buttons = random.sample(self.power_up_types, 3)
+            button_width = 200 
+            button_spacing = 100  
+            total_width = (button_width * len(buttons)) + (button_spacing * (len(buttons) - 1))
+            start_x = (self.screen.get_width() - total_width) // 2  # Starting X position for the first button
+            button_rects = []
 
-    def show_level_up_screen(self):
-        button_rects = []
-        for i, button_text in enumerate(self.buttons):
-            button_rects.append(self.draw_button(button_text, (self.screen.get_width() // 2, 150 + i * 100)))
+            for i, button_type in enumerate(buttons):
+                button_text = button_type.replace("_", " ")  # Replace underscores with spaces for display
+                button_x = start_x + (i * (button_width + button_spacing))  # X position for this button
+                button_center = (button_x + button_width // 2, self.screen.get_height() // 2)
+                button_rects.append(self.draw_button(button_text, button_center))
 
-        pygame.display.flip()  # Update the display to show the buttons
 
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                for i, rect in enumerate(button_rects):
-                    if rect.collidepoint(event.pos):
-                        print(f"{self.buttons[i]} was clicked")  # Placeholder for button logic
-                        self.pause_menu.toggle_all()
+            pygame.display.flip()  # Update the display to show the buttons
+
+            waiting_for_input = True
+            while waiting_for_input:
+                for event in pygame.event.get():
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        for i, rect in enumerate(button_rects):
+                            if rect.collidepoint(event.pos):
+                                self.power_up(buttons[i]) 
+                                waiting_for_input = False
+                                self.pause_menu.toggle_all()
+                                self.isSwoing = False
+                                break  # Break out of the loop once a button is clicked
+
+    def power_up(self, type):
+        if type == "Projectile_Penetration":
+            gameSetting.PROJETILE_PENETRATION += 1
+        elif type == "Projectile_Power":
+            gameSetting.PROJECTILE_DAMAGE += 20
+        elif type == "Projectile_RapidFire":
+            gameSetting.SHOOT_COOLDOWN -= 3
+        #elif type == "Player_Reload":
+        elif type == "Player_Movement":
+            gameSetting.PLAYER_SPEED += 2
 
     def update(self):
-        self.show_level_up_screen()
+        self.show_level_up_buttons()

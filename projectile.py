@@ -1,12 +1,12 @@
 import pygame
 import math
-from gameSetting import *
+import gameSetting
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self,x, y, angle, enemy_group, knockback_intensity=10):
         super().__init__()
         self.image = pygame.image.load("projectile.png").convert_alpha()
-        self.image = pygame.transform.rotozoom(self.image, 0, PROJECTILE_SCALE)
+        self.image = pygame.transform.rotozoom(self.image, 0, gameSetting.PROJECTILE_SCALE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
@@ -15,12 +15,12 @@ class Projectile(pygame.sprite.Sprite):
         self.angle = angle
         
         # Projectile Stats
-        self.lifetime = PROJECTILE_LIFETIME
+        self.lifetime = gameSetting.PROJECTILE_LIFETIME
         self.spawn_time = pygame.time.get_ticks()
-        self.damage = 10
+        self.damage = gameSetting.PROJECTILE_DAMAGE
         self.penetrate_count = 0  # Number of enemies penetrated
-        self.max_penetrations = 2  # Maximum number of penetrations before disappearing
-        self.speed = PROJECTILE_SPEED
+        self.max_penetrations = gameSetting.PROJETILE_PENETRATION  # Maximum number of penetrations before disappearing
+        self.speed = gameSetting.PROJECTILE_SPEED
         self.knockback_intensity = knockback_intensity
 
         self.x_velocity = math.cos(self.angle * (2*math.pi/360))*self.speed

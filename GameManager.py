@@ -1,7 +1,7 @@
 import pygame
 import random
+import gameSetting
 from pygame.locals import *
-from gameSetting import *
 from player import Player
 from enemy import Enemy
 from projectile import Projectile
@@ -16,7 +16,7 @@ from pauseMenu import PauseMenu
 pygame.init()
 
 # 디스플레이 설정
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((gameSetting.WIDTH, gameSetting.HEIGHT))
 pygame.display.set_caption("Top Down Shooter")
 clock = pygame.time.Clock()
 
@@ -26,7 +26,7 @@ menu.start_menu()
 
 # Player settings
 player_size = 50
-player_pos = [WIDTH // 2, HEIGHT // 2]
+player_pos = [gameSetting.WIDTH // 2, gameSetting.HEIGHT // 2]
 player_speed = 5
 
 # Map settings
@@ -46,7 +46,7 @@ background = pygame.image.load("background.png").convert()
 def reset_game():
     # Reset player state
     player.current_hp = player.max_hp
-    player.pos = pygame.math.Vector2(PLAYER_START)
+    player.pos = pygame.math.Vector2(gameSetting.PLAYER_START)
     player.velocity_x = 0
     player.velocity_y = 0
     player.rect.center = player.pos
@@ -73,8 +73,8 @@ class Camera(pygame.sprite.Group):
         self.floor_rect = background.get_rect(topleft = (0, 0))
 
     def custom_draw(self):
-        self.offset.x = player.rect.centerx - WIDTH // 2
-        self.offset.y = player.rect.centery - HEIGHT // 2
+        self.offset.x = player.rect.centerx - gameSetting.WIDTH // 2
+        self.offset.y = player.rect.centery - gameSetting.HEIGHT // 2
 
         floor_offset_pos = self.floor_rect.topleft - self.offset
         screen.blit(background, floor_offset_pos)
@@ -104,20 +104,19 @@ level_up_ui = LevelUpUI(screen, pause_menu)
 # Reset the spawn timer for enemies
 global last_enemy_spawn_time
 last_enemy_spawn_time = pygame.time.get_ticks()
-directions = SPAWN_DIRECTIONS
+directions = gameSetting.SPAWN_DIRECTIONS
 
 # Game Start before the game loop
 
 
 pause_reason = "ESC KeyDown"
 
-
 menu.start_menu()
 # Game loop
 running = True
 while running:
-    screen.fill(BLACK)
-
+    screen.fill(gameSetting.BLACK)
+    print(gameSetting.PROJECTILE_SCALE)
     # 이벤트 핸들링
     for event in pygame.event.get():
         # Quit PyGame Program
@@ -135,18 +134,25 @@ while running:
         game_ui.toggle_pause()  
         pause_reason = "Level Up"
 
-    # 일시정지 이벤트 핸들링
+    # 일시정지 이벤트 
     if pause_menu.paused:
         if pause_reason ==  "ESC KeyDown":
-            pause_menu.update()
-            continue  
+            pause_menu.update()  
+            continue
         elif pause_reason == "Level Up":
             level_up_ui.update()
             continue
-        
+            
+    # 플레이어 Hit 이벤트
+    hits = pygame.sprite.spritecollide(player, enemy_group, False)
+    if hits:
+        player.take_damage(10)  # Example damage value
 
+    # 발사체 Hit 이벤트
+    for projectile in projectile_group:
+        projectile.update()
 
-    # Game Over Event
+    # 게임 오버 이벤트
     if player.current_hp <= 0:
         print("Player health is zero, calling game_over")  # Debugging print
         action = menu.game_over()
@@ -160,18 +166,14 @@ while running:
 
     # Enemy Spawn
     current_time = pygame.time.get_ticks()
-    if current_time - last_enemy_spawn_time > ENEMY_SPAWN_INTERVAL:
+    if current_time - last_enemy_spawn_time > gameSetting.ENEMY_SPAWN_INTERVAL:
         last_enemy_spawn_time = current_time
         for direction in directions:
-            spawn_distance = max(WIDTH, HEIGHT) * 1.5  
+            spawn_distance = max(gameSetting.WIDTH, gameSetting.HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance
             enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
 
-    # Player Hit Event
-    hits = pygame.sprite.spritecollide(player, enemy_group, False)
-    if hits:
-        player.take_damage(10)  # Example damage value
-
+   
     # UI
     game_ui.draw_allUI(player)
 
@@ -179,13 +181,11 @@ while running:
     camera.custom_draw()
     all_sprites_group.update()
 
-    # Projectile Hit Event
-    for projectile in projectile_group:
-        projectile.update()
+   
 
     # Update the display, Cap the frame rate
     pygame.display.update()
-    clock.tick(FPS)
+    clock.tick(gameSetting.FPS)
 
      
 pygame.quit()
