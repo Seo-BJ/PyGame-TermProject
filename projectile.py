@@ -28,6 +28,7 @@ class Projectile(pygame.sprite.Sprite):
 
         # Group Initialize
         self.enemy_group = enemy_group
+        print("발사체 생성")
 
     def projectile_movement(self):
         self.x += self.x_velocity

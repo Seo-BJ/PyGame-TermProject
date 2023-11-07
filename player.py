@@ -1,23 +1,32 @@
 import pygame
 import math
+import spritesheet
 from projectile import *
 from gameSetting import *
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, projectile_group, all_sprites_group, enemy_group):
         super().__init__(all_sprites_group)
         self.pos = pygame.math.Vector2(PLAYER_START[0], PLAYER_START[1])
-        self.image = pygame.image.load("player.png").convert_alpha()
-        self.base_player_image = self.image
 
+        # 플레이어 이미지, 스프라이트
+        self.image =  pygame.image.load('playerSprite\walk.png').convert_alpha()
+        animation_steps = 10
+        self.sprite_sheet = spritesheet.SpriteSheet(self.image, animation_steps, 96, 96, 2, (0,0,0))
+        self.base_player_image = self.sprite_sheet.get_base_image()
         self.hitbox_rect = self.base_player_image.get_rect(center = self.pos)
         self.rect = self.hitbox_rect.copy()
-        self.speed = PLAYER_SPEED
 
+        # 플레이어 에니메이션
+        self.facing_right = True
+
+        self.speed = PLAYER_SPEED
         self.shoot = False
         self.shoot_cooldown = SHOOT_COOLDOWN
 
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFXET_X, GUN_OFFXET_Y)
+      
 
         # Group Initialize
         self.projectile_group = projectile_group
@@ -45,21 +54,30 @@ class Player(pygame.sprite.Sprite):
         self.max_exp = PLAYER_LEVELUP_EXP[0]
         
 
-    # 플레이어 회전
+    # 플레이어 회전 
     def player_rotation(self):
         self.mouse_pos = pygame.mouse.get_pos()
         self.x_change_mouse_player = (self.mouse_pos[0] - WIDTH // 2)
         self.y_change_mouse_player = (self.mouse_pos[1] - HEIGHT // 2)
         self.angle = math.degrees(math.atan2(self.y_change_mouse_player, self.x_change_mouse_player))
-        self.image = pygame.transform.rotate(self.base_player_image, -self.angle)
-        self.rect = self.image.get_rect(center = self.hitbox_rect.center)
+        #self.image = pygame.transform.rotate(self.base_player_image, -self.angle)
+        #self.rect = self.image.get_rect(center = self.hitbox_rect.center)
+
+    # 플레이어 이미지 방향
+    def player_flip(self):
+        mouse_x, _ = pygame.mouse.get_pos()
+        center_x = WIDTH//2
+        if mouse_x < center_x:
+            self.facing_right = False
+        else:
+            self.facing_right = True
 
     # 플레이어 입력 처리
     def user_Input(self):
         self.velocity_x = 0
         self.velocity_y = 0
 
-        # Player vertical/horizontal movement
+        # 수평 수직 이동
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             self.velocity_y -= self.speed
@@ -70,7 +88,7 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_d]:
             self.velocity_x += self.speed
 
-        # Player diagonally movement
+        # 대각선 이동
         if self.velocity_x != 0 and self.velocity_y != 0:
             self.velocity_y /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
@@ -130,12 +148,23 @@ class Player(pygame.sprite.Sprite):
             self.max_exp = PLAYER_LEVELUP_EXP[self.level -1]
             return True
         
+    # 플레이어 에니메이션
+    def animate(self):
+        self.image =  self.sprite_sheet.get_frame()
+        if not self.facing_right:
+                self.image = pygame.transform.flip(self.image, True, False)
+                self.image.set_colorkey((0, 0, 0)) 
+        self.rect = self.base_player_image.get_rect(center=self.hitbox_rect.center)
+
     # 플레이어 Update
     def update(self):
         self.user_Input()
         self.move()
+        self.player_flip()
+
         self.player_rotation()
-        #print(self.current_exp)
+        self.animate()
+     
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
 

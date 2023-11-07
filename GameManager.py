@@ -9,7 +9,7 @@ from menu import Menu
 from gameUI import GameUI
 from levelUpUI import LevelUpUI
 from pauseMenu import PauseMenu
-
+import spritesheet
 #from enemy import *
 
 # Initialize pygame
@@ -39,8 +39,6 @@ PROJECTILE_IMAGE_PATH = 'projectile.png'
 
 # Background
 background = pygame.image.load("background.png").convert()
-
-
 
 # Reset Game
 def reset_game():
@@ -106,17 +104,26 @@ global last_enemy_spawn_time
 last_enemy_spawn_time = pygame.time.get_ticks()
 directions = gameSetting.SPAWN_DIRECTIONS
 
-# Game Start before the game loop
-
-
 pause_reason = "ESC KeyDown"
 
+animation_list = []
+animation_steps = 10
+
+sprite_sheet_image = pygame.image.load('playerSprite\walk.png').convert_alpha()
+sprite_sheet = spritesheet.SpriteSheet(sprite_sheet_image, animation_steps, 96, 96, 1, (0,0,0))
+
+
+animation_cooldown = 100 # m/s
+
+
+# Game Start before the game loop
 menu.start_menu()
+
 # Game loop
 running = True
 while running:
     screen.fill(gameSetting.BLACK)
-    print(gameSetting.PROJECTILE_SCALE)
+
     # 이벤트 핸들링
     for event in pygame.event.get():
         # Quit PyGame Program
