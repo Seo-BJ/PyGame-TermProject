@@ -6,6 +6,7 @@ from player import Player
 from enemy import Enemy
 from projectile import Projectile
 from menu import Menu
+from gameUI import GameUI
 #from enemy import *
 
 # Initialize pygame
@@ -126,6 +127,9 @@ player = Player(projectile_group,all_sprites_group, enemy_group)
 camera = Camera()
 #enemy = Enemy((400, 400))
 
+# UI
+gmae_ui = GameUI(screen, player)
+
 all_sprites_group.add(player)
 
 # Spawn Manage
@@ -193,6 +197,8 @@ while running:
         player.current_hp,
         player.max_hp
     )
+    gmae_ui.draw_allUI()
+
     # screen.blit(background, (0,0))
     camera.custom_draw()
     all_sprites_group.update()

@@ -33,6 +33,10 @@ class Player(pygame.sprite.Sprite):
         self.invincible_time = 0
         self.invincible_duration = PLAYER_INVINCIBLE_DURATION 
 
+        # 플레이어 경험치(EXP)
+        self.current_exp = 0
+        self.max_exp = 100 # MUST MODIFY
+
     # 플레이어 회전
     def player_rotation(self):
         self.mouse_pos = pygame.mouse.get_pos()
@@ -114,7 +118,7 @@ class Player(pygame.sprite.Sprite):
         self.user_Input()
         self.move()
         self.player_rotation()
-
+        #print(self.current_exp)
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
 

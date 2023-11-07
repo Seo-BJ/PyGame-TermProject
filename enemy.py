@@ -47,7 +47,9 @@ class Enemy(pygame.sprite.Sprite):
     def take_damage(self, amount, knockback_direction=None, knockback_strength=100):
         self.current_hp -= amount
         if self.current_hp <= 0:
-            self.kill()  # Remove the enemy from all groups
+            self.player.current_exp += 10
+            self.kill()
+      
         else:
             # Apply knockback effect
             if knockback_direction is not None:
