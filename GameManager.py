@@ -133,7 +133,17 @@ last_enemy_spawn_time = pygame.time.get_ticks()
 
 # Game Start before the game loop
 menu.start_menu()
-
+# Enemy Spawn Direction
+directions = [
+            pygame.math.Vector2(1, 0),  # Right
+            pygame.math.Vector2(1, 1).normalize(),  # Down-Rightds
+            pygame.math.Vector2(0, 1),  # Down
+            pygame.math.Vector2(-1, 1).normalize(), # Down-Left
+            pygame.math.Vector2(-1, 0), # Left
+            pygame.math.Vector2(-1, -1).normalize(),# Up-Left
+            pygame.math.Vector2(0, -1), # Up
+            pygame.math.Vector2(1, -1).normalize(), # Up-Right
+        ]
 # Game loop
 running = True
 while running:
@@ -144,14 +154,7 @@ while running:
         # Quit PyGame Program
         if event.type == pygame.QUIT:
             running = False
-        # Mouse Button
-        if pygame.mouse.get_pressed() == (1, 0, 0):
-            player.shoot = True
-            projectile = player.is_shooting()
-            projectile_group.add(projectile)
-            all_sprites_group.add(projectile)
-        else:
-            player.shoot = False   
+
 
     # Game Over Event
     if player.current_hp <= 0:
@@ -169,18 +172,6 @@ while running:
     current_time = pygame.time.get_ticks()
     if current_time - last_enemy_spawn_time > ENEMY_SPAWN_INTERVAL:
         last_enemy_spawn_time = current_time
-
-        directions = [
-            pygame.math.Vector2(1, 0),  # Right
-            pygame.math.Vector2(1, 1).normalize(),  # Down-Rightds
-            pygame.math.Vector2(0, 1),  # Down
-            pygame.math.Vector2(-1, 1).normalize(), # Down-Left
-            pygame.math.Vector2(-1, 0), # Left
-            pygame.math.Vector2(-1, -1).normalize(),# Up-Left
-            pygame.math.Vector2(0, -1), # Up
-            pygame.math.Vector2(1, -1).normalize(), # Up-Right
-        ]
-
         for direction in directions:
             spawn_distance = max(WIDTH, HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance

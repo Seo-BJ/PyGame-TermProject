@@ -15,12 +15,12 @@ class Player(pygame.sprite.Sprite):
         self.speed = PLAYER_SPEED
 
         self.shoot = False
-        self.shoot_cooldown = 0
+        self.shoot_cooldown = SHOOT_COOLDOWN
 
         self.gun_barrel_offset = pygame.math.Vector2(GUN_OFFXET_X, GUN_OFFXET_Y)
 
         # Player HP
-        self.max_hp = PLAYER_MAXHP
+        self.max_hp = 100
         self.current_hp = self.max_hp
 
     def player_rotation(self):
@@ -53,11 +53,18 @@ class Player(pygame.sprite.Sprite):
 
 
                 
-    def is_shooting(self):
+    def is_shooting(self, projectile_group, all_sprites_group):
         if self.shoot_cooldown == 0:
             self.shoow_cooldown = SHOOT_COOLDOWN
             spawn_projectile_pos = self.pos + self.gun_barrel_offset.rotate(self.angle)
             self.projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], self.angle)
+            if pygame.mouse.get_pressed() == (1, 0, 0):
+                print("Left Mouse Button Clicked")
+                self.player.shoot = True
+                projectile_group.add(self.projectile)
+                all_sprites_group.add(self.projectile)
+            else:
+                self.player.shoot = False   
 
             return self.projectile
         
