@@ -4,6 +4,8 @@ import spritesheet
 from projectile import *
 from gameSetting import *
 
+IDLE = "idle"
+WALKING = 'walking'
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, projectile_group, all_sprites_group, enemy_group):
@@ -12,12 +14,18 @@ class Player(pygame.sprite.Sprite):
 
         # 플레이어 이미지, 스프라이트
         self.image =  pygame.image.load('playerSprite\walk.png').convert_alpha()
-        animation_steps = 10
-        self.sprite_sheet = spritesheet.SpriteSheet(self.image, animation_steps, 96, 96, 2, (0,0,0))
-        self.base_player_image = self.sprite_sheet.get_base_image()
+        self.sprite_sheets = {
+            IDLE: spritesheet.SpriteSheet('playerSprite/idle.png', 10, 96, 96, 2, (0,0,0)),
+            WALKING: spritesheet.SpriteSheet('playerSprite/walk.png', 10, 96, 96, 2, (0,0,0)),
+            #SHOOTING: spritesheet.SpriteSheet('playerSprite/shoot.png', animation_steps, 96, 96, 2, (0,0,0))
+        }
+        self.current_state = IDLE
+        self.current_sheets =  self.sprite_sheets[self.current_state]
+        self.base_player_image = self.current_sheets.get_base_image()
         self.hitbox_rect = self.base_player_image.get_rect(center = self.pos)
         self.rect = self.hitbox_rect.copy()
 
+        
         # 플레이어 에니메이션
         self.facing_right = True
 
@@ -99,6 +107,11 @@ class Player(pygame.sprite.Sprite):
         else:
             self.shoot = False   
 
+        if self.velocity_x == 0 and  self.velocity_y == 0:
+            self.set_animation_state(IDLE)
+        else:
+            self.set_animation_state(WALKING)
+
     # 플레이어 Shoot State
     def is_shooting(self):
         if self.shoot_cooldown == 0:
@@ -149,12 +162,20 @@ class Player(pygame.sprite.Sprite):
             return True
         
     # 플레이어 에니메이션
+    def set_animation_state(self, new_state):
+        if self.current_state != new_state:
+            self.current_state = new_state
+            self.current_sheets = self.sprite_sheets[new_state]
+
     def animate(self):
-        self.image =  self.sprite_sheet.get_frame()
+        self.image =  self.current_sheets.get_frame()
         if not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.image.set_colorkey((0, 0, 0)) 
         self.rect = self.base_player_image.get_rect(center=self.hitbox_rect.center)
+
+
+
 
     # 플레이어 Update
     def update(self):

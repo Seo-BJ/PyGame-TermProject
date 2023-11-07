@@ -106,16 +106,6 @@ directions = gameSetting.SPAWN_DIRECTIONS
 
 pause_reason = "ESC KeyDown"
 
-animation_list = []
-animation_steps = 10
-
-sprite_sheet_image = pygame.image.load('playerSprite\walk.png').convert_alpha()
-sprite_sheet = spritesheet.SpriteSheet(sprite_sheet_image, animation_steps, 96, 96, 1, (0,0,0))
-
-
-animation_cooldown = 100 # m/s
-
-
 # Game Start before the game loop
 menu.start_menu()
 
@@ -154,10 +144,6 @@ while running:
     hits = pygame.sprite.spritecollide(player, enemy_group, False)
     if hits:
         player.take_damage(10)  # Example damage value
-
-    # 발사체 Hit 이벤트
-    for projectile in projectile_group:
-        projectile.update()
 
     # 게임 오버 이벤트
     if player.current_hp <= 0:
