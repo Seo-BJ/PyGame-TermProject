@@ -7,18 +7,13 @@ from enemy import Enemy
 from projectile import Projectile
 from menu import Menu
 from gameUI import GameUI
+from pauseMenu import PauseMenu
 #from enemy import *
 
 # Initialize pygame
 pygame.init()
 
-# Colors
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-
-# Set up the display
+# 디스플레이 설정
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Top Down Shooter")
 clock = pygame.time.Clock()
@@ -40,19 +35,10 @@ map_chunks = {}   # Dictionary to store chunks
 projectiles = []
 PROJECTILE_IMAGE_PATH = 'projectile.png'
 
-
-
 # Background
 background = pygame.image.load("background.png").convert()
 
 
-# UI
-
-def draw_health_bar(screen, pos, size, border_color, inner_color, current, max_health):
-    border_rect = pygame.Rect(pos, size)
-    inner_rect = pygame.Rect(pos, (size[0] * (current / max_health), size[1]))
-    pygame.draw.rect(screen, border_color, border_rect, 2)  # Draw border
-    pygame.draw.rect(screen, inner_color, inner_rect)  # Draw inner health bar
 
 # Reset Game
 def reset_game():
@@ -73,32 +59,10 @@ def reset_game():
     # score = 0
     # level = 1
 
-    # Reset the spawn timer for enemies
-    global last_enemy_spawn_time
-    last_enemy_spawn_time = pygame.time.get_ticks()
 
-    # Add the player back to the all_sprites_group
-    all_sprites_group.add(player)
 
     # Reset any other game state variables here
     # ...
-
-# ... [Your existing code] ...
-
-def generate_chunk(x, y):
-    """ Generate a new chunk at the given (x, y) position """
-    tiles = []
-    for i in range(chunk_size // 10):
-        for j in range(chunk_size // 10):
-            if random.randint(0, 10) > 8:
-                tiles.append((x + i * 10, y + j * 10))
-    return tiles
-
-def get_chunk_pos(x, y):
-    """ Get the chunk position for the given (x, y) position """
-    return x // chunk_size * chunk_size, y // chunk_size * chunk_size
-
-
 
 class Camera(pygame.sprite.Group):
     def __init__(self):
@@ -124,30 +88,26 @@ enemy_group = pygame.sprite.Group()
 
 # Player, Camera
 player = Player(projectile_group,all_sprites_group, enemy_group)
+all_sprites_group.add(player)
 camera = Camera()
-#enemy = Enemy((400, 400))
+
 
 # UI
-gmae_ui = GameUI(screen, player)
+game_ui = GameUI(screen, player)
+menu = Menu(screen)
+pause_menu = PauseMenu(screen, menu,game_ui)
 
-all_sprites_group.add(player)
 
 # Spawn Manage
+# Reset the spawn timer for enemies
+global last_enemy_spawn_time
 last_enemy_spawn_time = pygame.time.get_ticks()
+directions = SPAWN_DIRECTIONS
 
 # Game Start before the game loop
 menu.start_menu()
-# Enemy Spawn Direction
-directions = [
-            pygame.math.Vector2(1, 0),  # Right
-            pygame.math.Vector2(1, 1).normalize(),  # Down-Rightds
-            pygame.math.Vector2(0, 1),  # Down
-            pygame.math.Vector2(-1, 1).normalize(), # Down-Left
-            pygame.math.Vector2(-1, 0), # Left
-            pygame.math.Vector2(-1, -1).normalize(),# Up-Left
-            pygame.math.Vector2(0, -1), # Up
-            pygame.math.Vector2(1, -1).normalize(), # Up-Right
-        ]
+
+
 # Game loop
 running = True
 while running:
@@ -158,7 +118,17 @@ while running:
         # Quit PyGame Program
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pause_menu.toggle_pause()  # This should toggle the pause state
+                game_ui.toggle_pause()  # Also toggle the pause state in the GameUI
 
+    if pause_menu.paused:
+        pause_menu.update()
+        continue  # Skip the rest of the game loop while paused
+
+    if player.level_up():
+        print("레벨업!")
 
     # Game Over Event
     if player.current_hp <= 0:
@@ -170,7 +140,7 @@ while running:
         elif action == 'restart':
             reset_game()  # Reset the game state
             menu.start_menu()  # Show the start menu again
-            running = True  # Set running to True to restart the game loo
+            running = True  # Set running to True to restart the game loop
 
     # Enemy Spawn
     current_time = pygame.time.get_ticks()
@@ -180,17 +150,16 @@ while running:
             spawn_distance = max(WIDTH, HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance
             enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
-            #enemy_group.add(enemy)
-            #all_sprites_group.add(enemy)
 
-    # {;ayer Hit Event
+    # Player Hit Event
     hits = pygame.sprite.spritecollide(player, enemy_group, False)
     if hits:
         player.take_damage(10)  # Example damage value
-    # UI
-    gmae_ui.draw_allUI(player)
 
-    # screen.blit(background, (0,0))
+    # UI
+    game_ui.draw_allUI(player)
+
+    # Camera and sprite updates
     camera.custom_draw()
     all_sprites_group.update()
 
@@ -202,4 +171,5 @@ while running:
     pygame.display.update()
     clock.tick(FPS)
 
+     
 pygame.quit()

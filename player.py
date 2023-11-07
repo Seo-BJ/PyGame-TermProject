@@ -33,9 +33,17 @@ class Player(pygame.sprite.Sprite):
         self.invincible_time = 0
         self.invincible_duration = PLAYER_INVINCIBLE_DURATION 
 
-        # 플레이어 경험치(EXP)
+        # 플레이어 경험치(EXP) & 레벨
+        self.level = 1
         self.current_exp = 0
-        self.max_exp = 100 # MUST MODIFY
+
+        LAYER_LEVELUP_EXP = []
+        for level in range(1, PLAYER_MAX_LEVEL + 1):
+            exp = 100* PLAYER_EXP_COEFFICEINT * (level ** 2) 
+            PLAYER_LEVELUP_EXP.append(exp)
+
+        self.max_exp = PLAYER_LEVELUP_EXP[0]
+        
 
     # 플레이어 회전
     def player_rotation(self):
@@ -114,6 +122,14 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect.center = self.pos
         self.rect.center = self.hitbox_rect.center
 
+    # 플레이어 레벨 업
+    def level_up(self):
+        if self.current_exp >= self.max_exp:
+            self.current_exp = 0
+            self.level += 1
+            self.max_exp = PLAYER_LEVELUP_EXP[self.level -1]
+            return True
+        
     # 플레이어 Update
     def update(self):
         self.user_Input()
