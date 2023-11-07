@@ -3,6 +3,7 @@ import random
 from pygame.locals import *
 from gameSetting import *
 from player import Player
+from enemy import Enemy
 from projectile import Projectile
 from menu import Menu
 #from enemy import *
@@ -96,42 +97,6 @@ def get_chunk_pos(x, y):
     """ Get the chunk position for the given (x, y) position """
     return x // chunk_size * chunk_size, y // chunk_size * chunk_size
 
-class Enemy(pygame.sprite.Sprite):
-    def __init__(self, position):
-        super().__init__(enemy_group, all_sprites_group)
-        self.image = pygame.image.load("enemy.png").convert_alpha()
-        self.imgae = pygame.transform.rotozoom(self.image, 0, 2)
-
-        self.rect = self.image.get_rect()
-        self.rect.center = position
-
-        self.direction = pygame.math.Vector2()
-        self.velocity = pygame.math.Vector2()
-        self.speed = ENEMY_SPEED
-        self.position = pygame.math.Vector2(position)
-    
-    def chase_player(self):
-        player_vector = pygame.math.Vector2(player.hitbox_rect.center)
-        enemy_vector = pygame.math.Vector2(self.rect.center)
-        distance = self.get_vetcor_length(player_vector, enemy_vector)
-
-        if distance > 0:
-            self.direction = (player_vector - enemy_vector).normalize()
-        else:
-            self.direction = pygame.math.Vector2() # zero vector
-
-        self.velocity = self.direction * self.speed
-        self.position += self.velocity
-
-        self.rect.centerx = self.position.x
-        self.rect.centery = self.position.y
-
-
-    def get_vetcor_length(self, vector_1, vector_2):
-        return (vector_1 - vector_2).magnitude()
-    
-    def update(self):
-        self.chase_player()
 
 
 class Camera(pygame.sprite.Group):
@@ -219,7 +184,7 @@ while running:
         for direction in directions:
             spawn_distance = max(WIDTH, HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance
-            enemy = Enemy(spawn_position)
+            enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
             #enemy_group.add(enemy)
             #all_sprites_group.add(enemy)
 
