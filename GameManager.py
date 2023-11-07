@@ -7,7 +7,9 @@ from enemy import Enemy
 from projectile import Projectile
 from menu import Menu
 from gameUI import GameUI
+from levelUpUI import LevelUpUI
 from pauseMenu import PauseMenu
+
 #from enemy import *
 
 # Initialize pygame
@@ -96,7 +98,7 @@ camera = Camera()
 game_ui = GameUI(screen, player)
 menu = Menu(screen)
 pause_menu = PauseMenu(screen, menu,game_ui)
-
+level_up_ui = LevelUpUI(screen, pause_menu)
 
 # Spawn Manage
 # Reset the spawn timer for enemies
@@ -105,30 +107,44 @@ last_enemy_spawn_time = pygame.time.get_ticks()
 directions = SPAWN_DIRECTIONS
 
 # Game Start before the game loop
+
+
+pause_reason = "ESC KeyDown"
+
+
 menu.start_menu()
-
-
 # Game loop
 running = True
 while running:
     screen.fill(BLACK)
 
-    # Event handling
+    # 이벤트 핸들링
     for event in pygame.event.get():
         # Quit PyGame Program
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                pause_menu.toggle_pause()  # This should toggle the pause state
-                game_ui.toggle_pause()  # Also toggle the pause state in the GameUI
+                pause_menu.toggle_pause()  
+                game_ui.toggle_pause()  
+                pause_reason =  "ESC KeyDown"
 
-    if pause_menu.paused:
-        pause_menu.update()
-        continue  # Skip the rest of the game loop while paused
-
+    # 플레이어 레벨업 이벤트
     if player.level_up():
-        print("레벨업!")
+        pause_menu.toggle_pause()  
+        game_ui.toggle_pause()  
+        pause_reason = "Level Up"
+
+    # 일시정지 이벤트 핸들링
+    if pause_menu.paused:
+        if pause_reason ==  "ESC KeyDown":
+            pause_menu.update()
+            continue  
+        elif pause_reason == "Level Up":
+            level_up_ui.update()
+            continue
+        
+
 
     # Game Over Event
     if player.current_hp <= 0:

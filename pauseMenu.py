@@ -13,6 +13,10 @@ class PauseMenu:
     def toggle_pause(self):
         self.paused = not self.paused
 
+    def toggle_all(self):
+        self.toggle_pause()
+        self.game_ui.toggle_pause()
+        
     def show_pause_screen(self):
         # Dim the screen or display a pause menu background
         overlay = pygame.Surface(self.screen.get_size())
