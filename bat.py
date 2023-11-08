@@ -9,29 +9,25 @@ DIE = "die"
 class Bat(pygame.sprite.Sprite):
     def __init__(self, position, enemy_group, all_sprites_group, player):
         super().__init__(enemy_group, all_sprites_group)
-
-        self.pos = position
+        self.player = player
+        self.position = pygame.math.Vector2(position)
         self.image =  pygame.image.load('Bat\Bat_Flight.png').convert_alpha()
         self.sprite_sheets = {
-            DIE: spritesheet.SpriteSheet('Bat\Bat_Death.png', 10, 64, 64, 2, (0,0,0)),
-            MOVE: spritesheet.SpriteSheet('Bat\Bat_Flight.png', 8, 64, 64, 2, (0,0,0)),
+            DIE: spritesheet.SpriteSheet('Bat\Bat_Death.png', 10, 64, 64, 3, (0,0,0)),
+            MOVE: spritesheet.SpriteSheet('Bat\Bat_Flight.png', 8, 64, 64, 3, (0,0,0)),
             #SHOOTING: spritesheet.SpriteSheet('playerSprite/shoot.png', animation_steps, 96, 96, 2, (0,0,0))
         }
         self.current_state = MOVE
+        self.facing_right = True
         self.current_sheets =  self.sprite_sheets[self.current_state]
         self.base_bat_image = self.current_sheets.get_base_image()
-        self.hitbox_rect = self.base_bat_image.get_rect(center = self.pos)
-        self.rect = self.hitbox_rect.copy()
-        self.rect.center = position
-        self.position = pygame.math.Vector2(position)
 
-        self.facing_right = True
+        self.rect = self.base_bat_image.get_rect(center = self.position)
 
         self.speed = BAT_SPEED  
         self.max_hp = BAT_HP  
         self.current_hp = self.max_hp
 
-        self.player = player
         self.direction = pygame.math.Vector2()
         self.velocity = pygame.math.Vector2()
 
@@ -57,7 +53,7 @@ class Bat(pygame.sprite.Sprite):
         if not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.image.set_colorkey((0, 0, 0)) 
-        self.rect = self.base_bat_image.get_rect(center=self.hitbox_rect.center)
+        self.rect = self.base_bat_image.get_rect(center=self.rect.center)
 
     def chase_player(self):
         player_vector = pygame.math.Vector2(self.player.hitbox_rect.center)
@@ -86,12 +82,16 @@ class Bat(pygame.sprite.Sprite):
     def take_damage(self, amount, knockback_direction=None, knockback_strength=100):
         self.current_hp -= amount
         if self.current_hp <= 0:
-            self.player.current_exp += 10
-            self.kill()
+            self.die()
         else:
             # Apply knockback effect
             if knockback_direction is not None:
                 self.apply_knockback(knockback_direction, knockback_strength)
+
+    def die(self):
+        self.player.current_exp += 10
+        
+        self.kill()
 
     def update(self):
         if self.knockback_duration > 0:
