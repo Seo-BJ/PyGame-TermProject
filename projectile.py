@@ -18,8 +18,8 @@ class Projectile(pygame.sprite.Sprite):
         self.lifetime = gameSetting.PROJECTILE_LIFETIME
         self.spawn_time = pygame.time.get_ticks()
         self.damage = gameSetting.PROJECTILE_DAMAGE
-        self.penetrate_count = 0  # Number of enemies penetrated
-        self.max_penetrations = gameSetting.PROJETILE_PENETRATION  # Maximum number of penetrations before disappearing
+        self.penetrate_count = 0  
+        self.max_penetrations = gameSetting.PROJETILE_PENETRATION  
         self.speed = gameSetting.PROJECTILE_SPEED
         self.knockback_intensity = knockback_intensity
 
@@ -28,7 +28,6 @@ class Projectile(pygame.sprite.Sprite):
 
         # Group Initialize
         self.enemy_group = enemy_group
-        print("발사체 생성")
 
     def projectile_movement(self):
         self.x += self.x_velocity
@@ -50,8 +49,8 @@ class Projectile(pygame.sprite.Sprite):
             knockback_direction.y = math.sin(math.radians(self.angle))
 
             enemy.take_damage(self.damage, knockback_direction, self.knockback_intensity)  
-            self.penetrate_count += 1  # Increment penetration count
+            self.penetrate_count += 1  
             if self.penetrate_count >= self.max_penetrations:
-                self.kill()  # Destroy the projectile after maximum penetrations
-                break  # Exit the loop after destroying the projectile
+                self.kill()  
+                break  
         

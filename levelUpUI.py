@@ -1,10 +1,14 @@
 import pygame
 import gameSetting
 import random
+from player import Player
 from pauseMenu import PauseMenu
+from orbitobject import OrbitObject
 
 class LevelUpUI:
-    def __init__(self, screen, pause_menu):
+    def __init__(self, player, all_sprites_group ,screen, pause_menu):
+        self.player = player
+        self.all_sprites_group = all_sprites_group
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 74)
@@ -56,6 +60,7 @@ class LevelUpUI:
                                 waiting_for_input = False
                                 self.pause_menu.toggle_all()
                                 self.isSwoing = False
+                                self.create_orbiting_objects(self.player, self.all_sprites_group, self.screen, 'projectile.png', 5, 1, 150)
                                 break  # Break out of the loop once a button is clicked
 
     def power_up(self, type):
@@ -68,6 +73,13 @@ class LevelUpUI:
         #elif type == "Player_Reload":
         elif type == "Player_Movement":
             gameSetting.PLAYER_SPEED += 2
+
+    def create_orbiting_objects(self, player, all_sprites_group, screen, image_path, level, rotation_speed, orbit_distance):
+        angle_between_objects = 360 / level
+        for i in range(level):
+            angle_offset = i * angle_between_objects
+            orbit_object = OrbitObject(player, screen, image_path, orbit_distance, angle_offset, rotation_speed)
+            all_sprites_group.add(orbit_object)
 
     def update(self):
         self.show_level_up_buttons()

@@ -10,6 +10,7 @@ from gameUI import GameUI
 from levelUpUI import LevelUpUI
 from pauseMenu import PauseMenu
 import spritesheet
+from orbitobject import OrbitObject
 #from enemy import *
 
 # Initialize pygame
@@ -96,7 +97,7 @@ camera = Camera()
 game_ui = GameUI(screen, player)
 menu = Menu(screen)
 pause_menu = PauseMenu(screen, menu,game_ui)
-level_up_ui = LevelUpUI(screen, pause_menu)
+level_up_ui = LevelUpUI(player, all_sprites_group ,screen, pause_menu)
 
 # Spawn Manage
 # Reset the spawn timer for enemies
@@ -108,6 +109,7 @@ pause_reason = "ESC KeyDown"
 
 # Game Start before the game loop
 menu.start_menu()
+
 
 # Game loop
 running = True
@@ -166,15 +168,13 @@ while running:
             spawn_position = player.pos + direction * spawn_distance
             enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
 
-   
+    
     # UI
     game_ui.draw_allUI(player)
 
     # Camera and sprite updates
     camera.custom_draw()
     all_sprites_group.update()
-
-   
 
     # Update the display, Cap the frame rate
     pygame.display.update()

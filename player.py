@@ -1,6 +1,7 @@
 import pygame
 import math
 import spritesheet
+from orbitobject import OrbitObject
 from projectile import *
 from gameSetting import *
 
@@ -112,6 +113,12 @@ class Player(pygame.sprite.Sprite):
         else:
             self.set_animation_state(WALKING)
 
+    # 플레이어 Move
+    def move(self):
+        self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
+        self.hitbox_rect.center = self.pos
+        self.rect.center = self.hitbox_rect.center
+
     # 플레이어 Shoot State
     def is_shooting(self):
         if self.shoot_cooldown == 0:
@@ -147,11 +154,6 @@ class Player(pygame.sprite.Sprite):
             if direction.length() <= knockback_radius:
                 enemy.take_damage(0, direction, knockback_strength)  # Apply knockback without dealing damage
 
-    # 플레이어 Move
-    def move(self):
-        self.pos += pygame.math.Vector2(self.velocity_x, self.velocity_y)
-        self.hitbox_rect.center = self.pos
-        self.rect.center = self.hitbox_rect.center
 
     # 플레이어 레벨 업
     def level_up(self):
@@ -173,7 +175,6 @@ class Player(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.image.set_colorkey((0, 0, 0)) 
         self.rect = self.base_player_image.get_rect(center=self.hitbox_rect.center)
-
 
 
 
