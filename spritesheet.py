@@ -1,7 +1,7 @@
 import pygame
 
 class SpriteSheet():
-    def __init__(self, image_path, frame_count, frame_width, frame_height, scale, color):
+    def __init__(self, state, image_path, frame_count, frame_width, frame_height, scale, color):
         self.sheet =  pygame.image.load(image_path).convert_alpha()
         self.frame_count = frame_count
         self.frame_width = frame_width
@@ -12,6 +12,7 @@ class SpriteSheet():
         self.current_frame = 0
         self.last_update = pygame.time.get_ticks()
         self.animation_cooldown = 100
+        self.state = state
 
     def load_frames(self):
         frames = []
@@ -27,7 +28,8 @@ class SpriteSheet():
         now = pygame.time.get_ticks()
         if now - self.last_update >= self.animation_cooldown:
             self.last_update = now
-            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            if self.state != "DIE" or self.current_frame < self.frame_count - 1:
+                self.current_frame = (self.current_frame + 1) % len(self.frames)
         return self.frames[self.current_frame]
     
     def get_base_image(self):

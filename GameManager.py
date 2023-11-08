@@ -31,7 +31,7 @@ player_speed = 5
 
 
 # Background Image and Map
-background = pygame.image.load("background.png").convert()
+background = pygame.image.load("map.png").convert()
 map_width = background.get_width()
 map_height = background.get_height()
 
@@ -65,7 +65,7 @@ class Camera(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
         self.offset = pygame.math.Vector2()
-        self.floor_rect = background.get_rect(topleft = (0, 0))
+        self.floor_rect = background.get_rect(center = (gameSetting.WIDTH//2, gameSetting.HEIGHT//2))
 
     def custom_draw(self):
         self.offset.x = player.rect.centerx - gameSetting.WIDTH // 2
@@ -94,9 +94,9 @@ font_size = gameSetting.FONT_SIZE
 pixel_font = pygame.font.Font('Font/Silver_font.ttf', font_size)
 
 # UI
-game_ui = PlayerUI(screen, pixel_font, player)
+playerUI = PlayerUI(screen, pixel_font, player)
 menu = Menu(screen, pixel_font)
-pause_menu = PauseMenu(screen, menu,game_ui)
+pause_menu = PauseMenu(screen, menu,playerUI)
 level_up_ui = LevelUpUI(player, all_sprites_group, enemy_group ,screen, pause_menu)
 
 # Spawn Manage
@@ -124,13 +124,13 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pause_menu.toggle_pause()  
-                game_ui.toggle_pause()  
+                playerUI.toggle_pause()  
                 pause_reason =  "ESC KeyDown"
 
     # 플레이어 레벨업 이벤트
     if player.level_up():
         pause_menu.toggle_pause()  
-        game_ui.toggle_pause()  
+        playerUI.toggle_pause()  
         pause_reason = "Level Up"
 
     # 일시정지 이벤트 
@@ -143,9 +143,10 @@ while running:
             continue
             
     # 플레이어 Hit 이벤트
-    hits = pygame.sprite.spritecollide(player, enemy_group, False)
+    hits = pygame.sprite.spritecollide(player, enemy_group, False,  pygame.sprite.collide_rect_ratio(0.2))
     if hits:
-        player.take_damage(10)  # Example damage value
+        player.take_damage(10) 
+        playerUI.start_healthbar_blink()
 
     # 게임 오버 이벤트
     if player.current_hp <= 0:
@@ -171,7 +172,7 @@ while running:
     # UI, Camera and sprite updates
     camera.custom_draw()
     all_sprites_group.update()
-    game_ui.draw_allUI(player)  
+    playerUI.draw_allUI(player)  
     # Update the display, Cap the frame rate
     pygame.display.update()
     clock.tick(gameSetting.FPS)

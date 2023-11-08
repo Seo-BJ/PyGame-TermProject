@@ -5,24 +5,25 @@ from enemy import Enemy
 
 MOVE = 'move'
 DIE = "die"
+ATTACK = "attack"
 
-class Bat(pygame.sprite.Sprite):
+class Witch(pygame.sprite.Sprite):
     def __init__(self, position, enemy_group, all_sprites_group, player):
         super().__init__(enemy_group, all_sprites_group)
         self.player = player
         self.position = pygame.math.Vector2(position)
-        self.image =  pygame.image.load('Bat\Bat_Flight.png').convert_alpha()
+        self.image =  pygame.image.load('Witch\Witch_Walk.png').convert_alpha()
         self.sprite_sheets = {
-            DIE: spritesheet.SpriteSheet("DIE",'Bat\Bat_Die.png', 10, 64, 64, 3, (0,0,0)),
-            MOVE: spritesheet.SpriteSheet('MOVE', 'Bat\Bat_Flight.png', 8, 64, 64, 3, (0,0,0)),
-            #SHOOTING: spritesheet.SpriteSheet('playerSprite/shoot.png', animation_steps, 96, 96, 2, (0,0,0))
+            DIE: spritesheet.SpriteSheet("DIE",'Witch\Witch_Die.png', 12, 64, 64, 3, (0,0,0)),
+            MOVE: spritesheet.SpriteSheet('MOVE', 'Witch\Witch_Walk.png', 8, 64, 64, 3, (0,0,0)),
+            ATTACK: spritesheet.SpriteSheet("ATTACK", 'Witch/Witch_Attack.png', 18, 64, 64, 3, (0,0,0))
         }
         self.current_state = MOVE
         self.facing_right = True
         self.current_sheets =  self.sprite_sheets[self.current_state]
-        self.base_bat_image = self.current_sheets.get_base_image()
+        self.base_witch_image = self.current_sheets.get_base_image()
 
-        self.rect = self.base_bat_image.get_rect(center = self.position)
+        self.rect = self.base_witch_image.get_rect(center = self.position)
 
         self.speed = BAT_SPEED  
         self.max_hp = BAT_HP  
@@ -53,7 +54,7 @@ class Bat(pygame.sprite.Sprite):
         if not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
                 self.image.set_colorkey((0, 0, 0)) 
-        self.rect = self.base_bat_image.get_rect(center=self.rect.center)
+        self.rect = self.base_witch_image.get_rect(center=self.rect.center)
 
     def chase_player(self):
         player_vector = pygame.math.Vector2(self.player.hitbox_rect.center)
@@ -90,34 +91,46 @@ class Bat(pygame.sprite.Sprite):
                 self.apply_knockback(knockback_direction, knockback_strength)
 
     def die(self):
-        self.player.current_exp += 10
+        self.player.current_exp += 15
         self.kill()
 
+    def animate_death(self):
+        if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
+            self.kill()
+        else:
+            self.image = self.current_sheets.get_frame()
+            self.rect = self.image.get_rect(center=self.rect.center)
+            
+    def attack_player(self):
+        # This method will handle the attack logic
+        # Create and add the Projectile to the appropriate groups
+        # For now, let's just print a message
+        print("Witch is attacking!")
+        self.set_animation_state(ATTACK)
+        # Create a projectile here and add it to the groups
+        # projectile = Projectile(...)
+        # self.projectile_group.add(projectile)
+        # self.all_sprites_group.add(projectile)
+
     def update(self):
+        player_vector = pygame.math.Vector2(self.player.hitbox_rect.center)
+        enemy_vector = pygame.math.Vector2(self.rect.center)
+        distance = self.get_vector_length(player_vector, enemy_vector)
+
         if self.current_state == DIE:
             self.animate_death()
-    
         else:
-            if self.knockback_duration > 0:
-                # Apply knockback movement
-                self.position += self.knockback_velocity
-                self.knockback_duration -= 1
-                if self.knockback_duration <= 0:
-                    # Reset knockback velocity
-                    self.knockback_velocity = pygame.math.Vector2()
+            if distance < self.RANGE and self.current_state != ATTACK:
+                self.attack_player()
+            elif self.current_state == ATTACK:
+                # Check if the attack animation is finished
+                if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
+                    self.set_animation_state(MOVE)  # Switch back to move state after attack
             else:
-                # Chase player if not in knockback
-                self.chase_player()
+                self.chase_player()  # Chase player if not attacking or dying
+
             self.rect.center = self.position
 
             self.enemy_flip()
             self.animate()
 
-    def animate_death(self):
-        if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
-            # Animation has finished, so kill the bat
-            self.die()
-        else:
-            # Continue playing the death animation
-            self.image = self.current_sheets.get_frame()
-            self.rect = self.image.get_rect(center=self.rect.center)
