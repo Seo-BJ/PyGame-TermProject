@@ -13,6 +13,7 @@ import spritesheet
 from orbitobject import OrbitObject
 
 from bat import Bat
+from witch import Witch
 #from enemy import *
 
 # Initialize pygame
@@ -148,7 +149,7 @@ while running:
         player.take_damage(10) 
         playerUI.start_healthbar_blink()
 
-    # 게임 오버 이벤트
+# 게임 오버 이벤트
     if player.current_hp <= 0:
         print("Player health is zero, calling game_over")  # Debugging print
         action = menu.game_over()
@@ -160,19 +161,20 @@ while running:
             menu.start_menu()  # Show the start menu again
             running = True  # Set running to True to restart the game loop
 
-    # Enemy Spawn
+    # Enemy 스폰 
     current_time = pygame.time.get_ticks()
     if current_time - last_enemy_spawn_time > gameSetting.ENEMY_SPAWN_INTERVAL:
         last_enemy_spawn_time = current_time
         for direction in directions:
             spawn_distance = max(gameSetting.WIDTH, gameSetting.HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance
-            enemy = Bat(spawn_position, enemy_group, all_sprites_group, player)
+            enemy = Witch(spawn_position, projectile_group ,enemy_group, all_sprites_group, player)
 
-    # UI, Camera and sprite updates
+    # UI, Camera and sprite update
     camera.custom_draw()
     all_sprites_group.update()
     playerUI.draw_allUI(player)  
+
     # Update the display, Cap the frame rate
     pygame.display.update()
     clock.tick(gameSetting.FPS)

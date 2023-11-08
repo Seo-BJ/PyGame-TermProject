@@ -2,21 +2,22 @@ import pygame
 import spritesheet
 from gameSetting import *
 from enemy import Enemy
-
+import math
+from witchProjectile import WitchProjectile
 MOVE = 'move'
 DIE = "die"
 ATTACK = "attack"
 
 class Witch(pygame.sprite.Sprite):
-    def __init__(self, position, enemy_group, all_sprites_group, player):
+    def __init__(self, position, projectile_group, enemy_group, all_sprites_group, player):
         super().__init__(enemy_group, all_sprites_group)
         self.player = player
         self.position = pygame.math.Vector2(position)
         self.image =  pygame.image.load('Witch\Witch_Walk.png').convert_alpha()
         self.sprite_sheets = {
-            DIE: spritesheet.SpriteSheet("DIE",'Witch\Witch_Die.png', 12, 64, 64, 3, (0,0,0)),
-            MOVE: spritesheet.SpriteSheet('MOVE', 'Witch\Witch_Walk.png', 8, 64, 64, 3, (0,0,0)),
-            ATTACK: spritesheet.SpriteSheet("ATTACK", 'Witch/Witch_Attack.png', 18, 64, 64, 3, (0,0,0))
+            DIE: spritesheet.SpriteSheet("DIE",'Witch\Witch_Die.png', 12, 64, 64, 2, (0,0,0)),
+            MOVE: spritesheet.SpriteSheet('MOVE', 'Witch\Witch_Walk.png', 8, 64, 64, 2, (0,0,0)),
+            ATTACK: spritesheet.SpriteSheet("ATTACK", 'Witch/Witch_Attack.png', 18, 64, 64, 2, (0,0,0))
         }
         self.current_state = MOVE
         self.facing_right = True
@@ -25,8 +26,8 @@ class Witch(pygame.sprite.Sprite):
 
         self.rect = self.base_witch_image.get_rect(center = self.position)
 
-        self.speed = BAT_SPEED  
-        self.max_hp = BAT_HP  
+        self.speed = WITCH_SPEED  
+        self.max_hp = WTICH_HP
         self.current_hp = self.max_hp
 
         self.direction = pygame.math.Vector2()
@@ -35,6 +36,15 @@ class Witch(pygame.sprite.Sprite):
         # Enemy Knockback
         self.knockback_duration = 0  # Duration of knockback effect
         self.knockback_velocity = pygame.math.Vector2()  # Velocity during knockback
+
+        # Witch
+        self.range = WITCH_RANGE
+        self.exp = WTICH_EXP
+        self.shoot_cooldown = 0
+        # Group Initialize
+        self.projectile_group = projectile_group
+        self.all_sprites_group = all_sprites_group
+        self.enemy_group = enemy_group
 
     def enemy_flip(self):
         player_x =  pygame.math.Vector2(self.player.hitbox_rect.center)[0]
@@ -91,7 +101,7 @@ class Witch(pygame.sprite.Sprite):
                 self.apply_knockback(knockback_direction, knockback_strength)
 
     def die(self):
-        self.player.current_exp += 15
+        self.player.current_exp += self.exp
         self.kill()
 
     def animate_death(self):
@@ -102,25 +112,30 @@ class Witch(pygame.sprite.Sprite):
             self.rect = self.image.get_rect(center=self.rect.center)
             
     def attack_player(self):
-        # This method will handle the attack logic
-        # Create and add the Projectile to the appropriate groups
-        # For now, let's just print a message
-        print("Witch is attacking!")
+        self.shoot_cooldown = WITCH_SHOOT_COOLDOWN
         self.set_animation_state(ATTACK)
-        # Create a projectile here and add it to the groups
-        # projectile = Projectile(...)
-        # self.projectile_group.add(projectile)
-        # self.all_sprites_group.add(projectile)
+        self.shoot_cooldown = self.current_sheets.animation_cooldown 
+
+        direction = pygame.math.Vector2(self.player.rect.center) - pygame.math.Vector2(self.rect.center)
+        x_diff = direction[0]
+        y_diff = direction[1]
+        angle = math.degrees(math.atan2(y_diff, x_diff))
+
+        if direction.length() > 0:  
+            direction = direction.normalize()
+        witch_projectile = WitchProjectile(self.rect.centerx, self.rect.centery, angle, self.player)
+        self.enemy_group.add(witch_projectile)
+        self.all_sprites_group.add(witch_projectile)
 
     def update(self):
         player_vector = pygame.math.Vector2(self.player.hitbox_rect.center)
         enemy_vector = pygame.math.Vector2(self.rect.center)
-        distance = self.get_vector_length(player_vector, enemy_vector)
+        distance = self.get_vetcor_length(player_vector, enemy_vector)
 
         if self.current_state == DIE:
             self.animate_death()
         else:
-            if distance < self.RANGE and self.current_state != ATTACK:
+            if distance < self.range and self.current_state != ATTACK and self.shoot_cooldown == 0:
                 self.attack_player()
             elif self.current_state == ATTACK:
                 # Check if the attack animation is finished
@@ -134,3 +149,5 @@ class Witch(pygame.sprite.Sprite):
             self.enemy_flip()
             self.animate()
 
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1

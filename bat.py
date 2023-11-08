@@ -13,8 +13,8 @@ class Bat(pygame.sprite.Sprite):
         self.position = pygame.math.Vector2(position)
         self.image =  pygame.image.load('Bat\Bat_Flight.png').convert_alpha()
         self.sprite_sheets = {
-            DIE: spritesheet.SpriteSheet("DIE",'Bat\Bat_Die.png', 10, 64, 64, 3, (0,0,0)),
-            MOVE: spritesheet.SpriteSheet('MOVE', 'Bat\Bat_Flight.png', 8, 64, 64, 3, (0,0,0)),
+            DIE: spritesheet.SpriteSheet("DIE",'Bat\Bat_Die.png', 10, 64, 64, 2, (0,0,0)),
+            MOVE: spritesheet.SpriteSheet('MOVE', 'Bat\Bat_Flight.png', 8, 64, 64, 2, (0,0,0)),
             #SHOOTING: spritesheet.SpriteSheet('playerSprite/shoot.png', animation_steps, 96, 96, 2, (0,0,0))
         }
         self.current_state = MOVE
@@ -34,6 +34,9 @@ class Bat(pygame.sprite.Sprite):
         # Enemy Knockback
         self.knockback_duration = 0  # Duration of knockback effect
         self.knockback_velocity = pygame.math.Vector2()  # Velocity during knockback
+
+        # Bat
+        self.exp = BAT_EXP
 
     def enemy_flip(self):
         player_x =  pygame.math.Vector2(self.player.hitbox_rect.center)[0]
@@ -90,7 +93,7 @@ class Bat(pygame.sprite.Sprite):
                 self.apply_knockback(knockback_direction, knockback_strength)
 
     def die(self):
-        self.player.current_exp += 10
+        self.player.current_exp += self.exp
         self.kill()
 
     def update(self):

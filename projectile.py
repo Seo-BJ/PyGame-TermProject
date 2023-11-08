@@ -3,13 +3,13 @@ import math
 import gameSetting
 
 class Projectile(pygame.sprite.Sprite):
-    def __init__(self,x, y, angle, enemy_group, knockback_intensity=10):
+    def __init__(self,x, y, angle, enemy_group, player, knockback_intensity=10):
         super().__init__()
         self.image = pygame.image.load("projectile.png").convert_alpha()
         self.image = pygame.transform.rotozoom(self.image, 0, gameSetting.PROJECTILE_SCALE)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-
+        self.player = player
         self.x = x
         self.y = y
         self.angle = angle
@@ -28,8 +28,12 @@ class Projectile(pygame.sprite.Sprite):
 
         # Group Initialize
         self.enemy_group = enemy_group
+  
 
     def projectile_movement(self):
+        self.x += self.x_velocity
+        self.y += self.y_velocity
+
         self.x += self.x_velocity
         self.y += self.y_velocity
 
@@ -41,16 +45,15 @@ class Projectile(pygame.sprite.Sprite):
 
     def update(self):
         self.projectile_movement()
-
         hits = pygame.sprite.spritecollide(self, self.enemy_group, False)
-        for enemy in hits:
-            knockback_direction = pygame.math.Vector2()
-            knockback_direction.x = math.cos(math.radians(self.angle))
-            knockback_direction.y = math.sin(math.radians(self.angle))
+        if hits:
+            for enemy in hits:
+                knockback_direction = pygame.math.Vector2()
+                knockback_direction.x = math.cos(math.radians(self.angle))
+                knockback_direction.y = math.sin(math.radians(self.angle))
 
-            enemy.take_damage(self.damage, knockback_direction, self.knockback_intensity)  
-            self.penetrate_count += 1  
-            if self.penetrate_count >= self.max_penetrations:
-                self.kill()  
-                break  
-        
+                enemy.take_damage(self.damage, knockback_direction, self.knockback_intensity)  
+                self.penetrate_count += 1  
+                if self.penetrate_count >= self.max_penetrations:
+                    self.kill()  
+                    break  

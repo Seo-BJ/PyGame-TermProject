@@ -4,7 +4,7 @@ import random
 import spritesheet
 from meteor import Meteor
 from orbitobject import OrbitObject
-from projectile import *
+from projectile import Projectile
 from gameSetting import *
 
 IDLE = "idle"
@@ -145,12 +145,12 @@ class Player(pygame.sprite.Sprite):
             start_angle = -spread_angle * (num_projectiles - 1) / 2
             for i in range(num_projectiles):
                 angle = self.angle + start_angle + i * spread_angle
-                projectile = Projectile(self.pos[0], self.pos[1], angle, self.enemy_group)
+                projectile = Projectile(self.pos[0], self.pos[1], angle, self.enemy_group, self)
                 self.projectile_group.add(projectile)
                 self.all_sprites_group.add(projectile)
 
-            target_x = random.randint(-gameSetting.WIDTH//2, gameSetting.WIDTH//2)
-            target_y = random.randint(-gameSetting.HEIGHT//2, gameSetting.HEIGHT//2)
+            target_x = random.randint(-WIDTH//2, WIDTH//2)
+            target_y = random.randint(-HEIGHT//2, HEIGHT//2)
             meteorite = Meteor(target_x, target_y, self.enemy_group)
             self.all_sprites_group.add(meteorite)
 
@@ -164,8 +164,8 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.invincible = True
                 self.invincible_time = pygame.time.get_ticks()
-             
-        self.push_enemies_away(knockback_radius=100, knockback_strength=10)
+        
+            self.push_enemies_away(knockback_radius=100, knockback_strength=10)
 
 
     # 플레이어가 적과 부딪히면 주변 적들을 잠깐 밀침

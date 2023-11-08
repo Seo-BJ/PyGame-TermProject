@@ -29,7 +29,7 @@ class Menu:
         while self.running:
             self.screen.fill((0, 0, 0))
             # Draw the title a bit higher than center
-            self.draw_title('Escape from Castle', (self.screen.get_width() // 2, self.screen.get_height() // 2 + title_y_offset))
+            self.draw_title('Survivor the Darkness', (self.screen.get_width() // 2, self.screen.get_height() // 2 + title_y_offset))
             # Draw buttons with the specified spacing
             start_button = self.draw_button('게임 시작', (self.screen.get_width() // 2, self.screen.get_height() // 2 + button_spacing))
             exit_button = self.draw_button('게임 종료', (self.screen.get_width() // 2, self.screen.get_height() // 2 + button_spacing * 2))
