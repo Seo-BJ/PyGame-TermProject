@@ -30,16 +30,11 @@ player_size = 50
 player_pos = [gameSetting.WIDTH // 2, gameSetting.HEIGHT // 2]
 player_speed = 5
 
-# Map settings
-chunk_size = 400  # Size of a single chunk
-map_chunks = {}   # Dictionary to store chunks
 
-# Projectile 
-projectiles = []
-PROJECTILE_IMAGE_PATH = 'projectile.png'
-
-# Background
+# Background Image and MAp
 background = pygame.image.load("background.png").convert()
+map_width = background.get_width()
+map_height = background.get_height()
 
 # Reset Game
 def reset_game():
@@ -168,14 +163,10 @@ while running:
             spawn_position = player.pos + direction * spawn_distance
             enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
 
-    
-    # UI
-    game_ui.draw_allUI(player)
-
-    # Camera and sprite updates
+    # UI, Camera and sprite updates
     camera.custom_draw()
     all_sprites_group.update()
-
+    game_ui.draw_allUI(player)  
     # Update the display, Cap the frame rate
     pygame.display.update()
     clock.tick(gameSetting.FPS)

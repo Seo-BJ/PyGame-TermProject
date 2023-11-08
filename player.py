@@ -1,6 +1,8 @@
 import pygame
 import math
+import random
 import spritesheet
+from meteor import Meteor
 from orbitobject import OrbitObject
 from projectile import *
 from gameSetting import *
@@ -26,7 +28,11 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect = self.base_player_image.get_rect(center = self.pos)
         self.rect = self.hitbox_rect.copy()
 
-        
+        # 플레이어 이동
+        self.velocity_x = 0
+        self.velocity_y = 0
+        self.speed_reduction_coefficient = 0.5
+
         # 플레이어 에니메이션
         self.facing_right = True
 
@@ -61,6 +67,11 @@ class Player(pygame.sprite.Sprite):
             PLAYER_LEVELUP_EXP.append(exp)
 
         self.max_exp = PLAYER_LEVELUP_EXP[0]
+
+        # 플레이어 대쉬
+        self.dash_cooldown = 5000  # Cooldown time in milliseconds
+        self.last_dash = 0  # Time when the last dash was performed
+
         
 
     # 플레이어 회전 
@@ -86,28 +97,36 @@ class Player(pygame.sprite.Sprite):
         self.velocity_x = 0
         self.velocity_y = 0
 
+        if pygame.mouse.get_pressed() == (1, 0, 0):
+            speed_modifier = self.speed_reduction_coefficient
+            if  self.shoot_cooldown == 0:
+                self.is_shooting()
+                self.shoot = True
+        else:
+            self.shoot = False   
+            speed_modifier = 1
+
         # 수평 수직 이동
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            self.velocity_y -= self.speed
+            self.velocity_y -= self.speed * speed_modifier
         if keys[pygame.K_s]:
-            self.velocity_y += self.speed
+            self.velocity_y += self.speed * speed_modifier
         if keys[pygame.K_a]:
-            self.velocity_x -= self.speed
+            self.velocity_x -= self.speed * speed_modifier
         if keys[pygame.K_d]:
-            self.velocity_x += self.speed
+            self.velocity_x += self.speed * speed_modifier
+        # 대쉬
+        if keys[pygame.K_SPACE]:
+            self.player_dash()
 
         # 대각선 이동
         if self.velocity_x != 0 and self.velocity_y != 0:
             self.velocity_y /= math.sqrt(2)
             self.velocity_y /= math.sqrt(2)
 
-        if pygame.mouse.get_pressed() == (1, 0, 0) and self.shoot_cooldown == 0:
-            self.is_shooting()
-            self.shoot = True
-        else:
-            self.shoot = False   
 
+        # 에니메이션 출력
         if self.velocity_x == 0 and  self.velocity_y == 0:
             self.set_animation_state(IDLE)
         else:
@@ -119,14 +138,52 @@ class Player(pygame.sprite.Sprite):
         self.hitbox_rect.center = self.pos
         self.rect.center = self.hitbox_rect.center
 
+    def player_dash(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_dash >= self.dash_cooldown:
+            self.last_dash = current_time  # Reset the last dash time
+            print("스페이스 바 누름!!!!")
+            # Get the mouse position and calculate the direction
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            dash_direction = pygame.math.Vector2(mouse_x - self.rect.x, mouse_y - self.rect.y)
+            dash_direction.normalize_ip()
+
+            # Set the player's position to the mouse position or a maximum dash distance
+            dash_distance = 200  # You can set this to whatever distance you want
+            new_pos = pygame.math.Vector2(self.rect.x, self.rect.y) + dash_direction * dash_distance
+
+            # Make sure the new position is within the screen bounds
+            new_pos.x = max(0, min(new_pos.x, gameSetting.WIDTH - self.rect.width))
+            new_pos.y = max(0, min(new_pos.y, gameSetting.HEIGHT - self.rect.height))
+
+            # Update the player's position
+            self.rect.x, self.rect.y = new_pos.x, new_pos.y
+            
     # 플레이어 Shoot State
-    def is_shooting(self):
+    # In the Player class
+    def is_shooting(self, num_projectiles=10, spread_angle=10):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = SHOOT_COOLDOWN
-            spawn_projectile_pos = self.pos + self.gun_barrel_offset.rotate(-self.angle)
-            projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], self.angle, self.enemy_group)
-            self.projectile_group.add(projectile)
-            self.all_sprites_group.add(projectile)
+            # Calculate the starting angle for the spread
+            start_angle = -spread_angle * (num_projectiles - 1) / 2
+            for i in range(num_projectiles):
+                # Calculate the angle for this projectile
+                angle = self.angle + start_angle + i * spread_angle
+                # Calculate the spawn position for this projectile
+                spawn_projectile_pos = self.pos + self.gun_barrel_offset.rotate(-angle)
+                # Create and add the projectile to the groups
+                projectile = Projectile(spawn_projectile_pos[0], spawn_projectile_pos[1], angle, self.enemy_group)
+                self.projectile_group.add(projectile)
+                self.all_sprites_group.add(projectile)
+
+            target_x = random.randint(-gameSetting.WIDTH//2, gameSetting.WIDTH//2)
+            target_y = random.randint(-gameSetting.HEIGHT//2, gameSetting.HEIGHT//2)
+            meteorite = Meteor(target_x, target_y, self.enemy_group)
+            self.all_sprites_group.add(meteorite)
+
+# In the Projectile class
+# No changes needed in the constructor since the angle is already being passed in
+# The rest of the Projectile class remains the same
 
     # 플레이어 데미지 
     def take_damage(self, amount):
