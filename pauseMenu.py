@@ -6,7 +6,7 @@ class PauseMenu:
     def __init__(self, screen, menu, game_ui):
         self.screen = screen
         self.menu = menu  # Pass the Menu instance to PauseMenu
-        self.font = pygame.font.Font(None, 74)
+        self.font = menu.font
         self.paused = False
         self.game_ui = game_ui
 

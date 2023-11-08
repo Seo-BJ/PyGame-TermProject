@@ -6,11 +6,13 @@ from player import Player
 from enemy import Enemy
 from projectile import Projectile
 from menu import Menu
-from gameUI import GameUI
+from playerUI import PlayerUI
 from levelUpUI import LevelUpUI
 from pauseMenu import PauseMenu
 import spritesheet
 from orbitobject import OrbitObject
+
+from bat import Bat
 #from enemy import *
 
 # Initialize pygame
@@ -21,9 +23,6 @@ screen = pygame.display.set_mode((gameSetting.WIDTH, gameSetting.HEIGHT))
 pygame.display.set_caption("Top Down Shooter")
 clock = pygame.time.Clock()
 
-# Create Menu instance and start with the main menu
-menu = Menu(screen)
-menu.start_menu()
 
 # Player settings
 player_size = 50
@@ -31,10 +30,12 @@ player_pos = [gameSetting.WIDTH // 2, gameSetting.HEIGHT // 2]
 player_speed = 5
 
 
-# Background Image and MAp
+# Background Image and Map
 background = pygame.image.load("background.png").convert()
 map_width = background.get_width()
 map_height = background.get_height()
+
+
 
 # Reset Game
 def reset_game():
@@ -87,10 +88,14 @@ player = Player(projectile_group,all_sprites_group, enemy_group)
 all_sprites_group.add(player)
 camera = Camera()
 
+########## UI & FONT ############################################################
+# Font
+font_size = gameSetting.FONT_SIZE  
+pixel_font = pygame.font.Font('Font/Silver_font.ttf', font_size)
 
 # UI
-game_ui = GameUI(screen, player)
-menu = Menu(screen)
+game_ui = PlayerUI(screen, pixel_font, player)
+menu = Menu(screen, pixel_font)
 pause_menu = PauseMenu(screen, menu,game_ui)
 level_up_ui = LevelUpUI(player, all_sprites_group, enemy_group ,screen, pause_menu)
 
@@ -161,7 +166,7 @@ while running:
         for direction in directions:
             spawn_distance = max(gameSetting.WIDTH, gameSetting.HEIGHT) * 1.5  
             spawn_position = player.pos + direction * spawn_distance
-            enemy = Enemy(spawn_position, enemy_group, all_sprites_group, player)
+            enemy = Bat(spawn_position, enemy_group, all_sprites_group, player)
 
     # UI, Camera and sprite updates
     camera.custom_draw()

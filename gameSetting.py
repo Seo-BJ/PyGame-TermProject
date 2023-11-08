@@ -29,7 +29,7 @@ PROJECTILE_DAMAGE = 20
 
 # Enemy Setting
 ENEMY_SPEED = 4
-ENEMY_SPAWN_INTERVAL = 5000 # 5 seconds
+ENEMY_SPAWN_INTERVAL = 2000 # 5 seconds
 ENEMY_MAXHP = 50
 
 SPAWN_DIRECTIONS =  [
@@ -42,10 +42,15 @@ SPAWN_DIRECTIONS =  [
             pygame.math.Vector2(0, -1), # Up
             pygame.math.Vector2(1, -1).normalize(), # Up-Right
         ]
+
+# Bat Enemy
+BAT_SPEED = 3
+BAT_HP = 40
 # Color Setting
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 
-
+# Font
+FONT_SIZE = 64
