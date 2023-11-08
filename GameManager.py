@@ -97,7 +97,7 @@ camera = Camera()
 game_ui = GameUI(screen, player)
 menu = Menu(screen)
 pause_menu = PauseMenu(screen, menu,game_ui)
-level_up_ui = LevelUpUI(player, all_sprites_group ,screen, pause_menu)
+level_up_ui = LevelUpUI(player, all_sprites_group, enemy_group ,screen, pause_menu)
 
 # Spawn Manage
 # Reset the spawn timer for enemies

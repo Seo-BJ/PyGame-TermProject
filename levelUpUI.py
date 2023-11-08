@@ -6,9 +6,10 @@ from pauseMenu import PauseMenu
 from orbitobject import OrbitObject
 
 class LevelUpUI:
-    def __init__(self, player, all_sprites_group ,screen, pause_menu):
+    def __init__(self, player, all_sprites_group, enemy_group, screen, pause_menu):
         self.player = player
         self.all_sprites_group = all_sprites_group
+        self.enemy_group = enemy_group
         self.screen = screen
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 74)
@@ -23,6 +24,7 @@ class LevelUpUI:
         ]
         self.isSwoing = False
     
+        
     def draw_button(self, text, center):
         text_render = self.font_small.render(text, True, (255, 255, 255))
         text_rect = text_render.get_rect(center=center)
@@ -78,7 +80,7 @@ class LevelUpUI:
         angle_between_objects = 360 / level
         for i in range(level):
             angle_offset = i * angle_between_objects
-            orbit_object = OrbitObject(player, screen, image_path, orbit_distance, angle_offset, rotation_speed)
+            orbit_object = OrbitObject(player, screen, self.enemy_group, image_path, orbit_distance, angle_offset, rotation_speed)
             all_sprites_group.add(orbit_object)
 
     def update(self):
