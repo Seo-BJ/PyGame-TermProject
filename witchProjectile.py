@@ -5,7 +5,7 @@ from gameSetting import *
 class WitchProjectile(pygame.sprite.Sprite):
     def __init__(self,x, y, angle, player):
         super().__init__()
-        self.image = pygame.image.load("projectile.png").convert_alpha()
+        self.image = pygame.image.load("witch_projectile.png").convert_alpha()
         self.image = pygame.transform.rotozoom(self.image, 0, 1)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)

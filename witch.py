@@ -9,7 +9,7 @@ DIE = "die"
 ATTACK = "attack"
 
 class Witch(pygame.sprite.Sprite):
-    def __init__(self, position, projectile_group, enemy_group, all_sprites_group, player):
+    def __init__(self, position, projectile_group, enemy_group, all_sprites_group, player, hit_sound):
         super().__init__(enemy_group, all_sprites_group)
         self.player = player
         self.position = pygame.math.Vector2(position)
@@ -32,10 +32,10 @@ class Witch(pygame.sprite.Sprite):
 
         self.direction = pygame.math.Vector2()
         self.velocity = pygame.math.Vector2()
-
+        self.hit_sound = hit_sound
         # Enemy Knockback
-        self.knockback_duration = 0  # Duration of knockback effect
-        self.knockback_velocity = pygame.math.Vector2()  # Velocity during knockback
+        self.knockback_duration = 0  
+        self.knockback_velocity = pygame.math.Vector2()  
 
         # Witch
         self.range = WITCH_RANGE
@@ -74,7 +74,7 @@ class Witch(pygame.sprite.Sprite):
         if distance > 0:
             self.direction = (player_vector - enemy_vector).normalize()
         else:
-            self.direction = pygame.math.Vector2() # zero vector
+            self.direction = pygame.math.Vector2() 
 
         self.velocity = self.direction * self.speed
         self.position += self.velocity
@@ -88,7 +88,7 @@ class Witch(pygame.sprite.Sprite):
     def apply_knockback(self, knockback_direction, knockback_strength):
         # Apply knockback effect
         self.knockback_velocity = knockback_direction.normalize() * knockback_strength
-        self.knockback_duration = 15  # Number of frames to apply knockback
+        self.knockback_duration = 8
 
     def take_damage(self, amount, knockback_direction=None, knockback_strength=100):
         self.current_hp -= amount
@@ -99,14 +99,16 @@ class Witch(pygame.sprite.Sprite):
         else:
             if knockback_direction is not None:
                 self.apply_knockback(knockback_direction, knockback_strength)
+        self.hit_sound.play()
 
     def die(self):
         self.player.current_exp += self.exp
+        self.hit_sound.play()
         self.kill()
 
     def animate_death(self):
         if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
-            self.kill()
+            self.die()
         else:
             self.image = self.current_sheets.get_frame()
             self.rect = self.image.get_rect(center=self.rect.center)
@@ -138,12 +140,10 @@ class Witch(pygame.sprite.Sprite):
             if distance < self.range and self.current_state != ATTACK and self.shoot_cooldown == 0:
                 self.attack_player()
             elif self.current_state == ATTACK:
-                # Check if the attack animation is finished
                 if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
-                    self.set_animation_state(MOVE)  # Switch back to move state after attack
+                    self.set_animation_state(MOVE)  
             else:
-                self.chase_player()  # Chase player if not attacking or dying
-
+                self.chase_player()  
             self.rect.center = self.position
 
             self.enemy_flip()

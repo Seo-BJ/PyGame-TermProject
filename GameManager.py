@@ -10,7 +10,7 @@ from playerUI import PlayerUI
 from levelUpUI import LevelUpUI
 from pauseMenu import PauseMenu
 import spritesheet
-from orbitobject import OrbitObject
+
 
 from bat import Bat
 from witch import Witch
@@ -25,42 +25,15 @@ pygame.display.set_caption("Top Down Shooter")
 clock = pygame.time.Clock()
 
 
-# Player settings
-player_size = 50
-player_pos = [gameSetting.WIDTH // 2, gameSetting.HEIGHT // 2]
-player_speed = 5
+# Sound
 
+hit_sound = pygame.mixer.Sound("Sound\Die.wav")
+shoot_sound = pygame.mixer.Sound("Sound\Shoot.wav")
+hit_sound.set_volume(0.25)
+shoot_sound.set_volume(0.4)
 
 # Background Image and Map
 background = pygame.image.load("map.png").convert()
-map_width = background.get_width()
-map_height = background.get_height()
-
-
-
-# Reset Game
-def reset_game():
-    # Reset player state
-    player.current_hp = player.max_hp
-    player.pos = pygame.math.Vector2(gameSetting.PLAYER_START)
-    player.velocity_x = 0
-    player.velocity_y = 0
-    player.rect.center = player.pos
-
-    # Clear all sprites from groups
-    for group in [all_sprites_group, enemy_group, projectile_group]:
-        for entity in group:
-            entity.kill()  # This will remove the sprite from all groups
-
-    # Reinitialize or reset other game state as necessary
-    # For example, if you have a score or level system, reset it here
-    # score = 0
-    # level = 1
-
-
-
-    # Reset any other game state variables here
-    # ...
 
 class Camera(pygame.sprite.Group):
     def __init__(self):
@@ -85,7 +58,7 @@ projectile_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
 # Player, Camera
-player = Player(projectile_group,all_sprites_group, enemy_group)
+player = Player(projectile_group,all_sprites_group, enemy_group, screen, shoot_sound)
 all_sprites_group.add(player)
 camera = Camera()
 
@@ -98,9 +71,9 @@ pixel_font = pygame.font.Font('Font/Silver_font.ttf', font_size)
 playerUI = PlayerUI(screen, pixel_font, player)
 menu = Menu(screen, pixel_font)
 pause_menu = PauseMenu(screen, menu,playerUI)
-level_up_ui = LevelUpUI(player, all_sprites_group, enemy_group ,screen, pause_menu)
+level_up_ui = LevelUpUI(player,pixel_font, all_sprites_group, enemy_group ,screen, pause_menu)
 
-# Spawn Manage
+
 # Reset the spawn timer for enemies
 global last_enemy_spawn_time
 last_enemy_spawn_time = pygame.time.get_ticks()
@@ -110,7 +83,10 @@ pause_reason = "ESC KeyDown"
 
 # Game Start before the game loop
 menu.start_menu()
-
+pygame.mixer.music.load("Sound\BGM.wav")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.5)
+start_time = pygame.time.get_ticks()
 
 # Game loop
 running = True
@@ -148,36 +124,42 @@ while running:
     if hits:
         player.take_damage(10) 
         playerUI.start_healthbar_blink()
+        hit_sound.play()
 
 # 게임 오버 이벤트
     if player.current_hp <= 0:
-        print("Player health is zero, calling game_over")  # Debugging print
         action = menu.game_over()
-        print(f"Game over action: {action}")  # Debugging print
         if action == 'exit':
             running = False
-        elif action == 'restart':
-            reset_game()  # Reset the game state
-            menu.start_menu()  # Show the start menu again
-            running = True  # Set running to True to restart the game loop
 
-    # Enemy 스폰 
+    minutes_passed = (pygame.time.get_ticks() - start_time) // 120000
+
     current_time = pygame.time.get_ticks()
     if current_time - last_enemy_spawn_time > gameSetting.ENEMY_SPAWN_INTERVAL:
         last_enemy_spawn_time = current_time
-        for direction in directions:
-            spawn_distance = max(gameSetting.WIDTH, gameSetting.HEIGHT) * 1.5  
-            spawn_position = player.pos + direction * spawn_distance
-            enemy = Witch(spawn_position, projectile_group ,enemy_group, all_sprites_group, player)
+        enemy_increase_factor = 1.1
+        enemy_multiplier = min(enemy_increase_factor ** minutes_passed, gameSetting.MAX_ENEMY_MULTIPLIER)
+        number_of_enemies = int(enemy_multiplier)  
+        for _ in range(number_of_enemies):
+            for direction in directions:
+                spawn_distance = max(gameSetting.WIDTH, gameSetting.HEIGHT) * 1.5
+                spawn_position = player.pos + direction * spawn_distance
+                
+                if random.choice([True, False]):
+                    enemy = Witch(spawn_position, projectile_group, enemy_group, all_sprites_group, player, hit_sound)
+                else:
+                    enemy = Bat(spawn_position, enemy_group, all_sprites_group, player, hit_sound)
 
-    # UI, Camera and sprite update
+       
+
+
+    
+    # Update 
     camera.custom_draw()
     all_sprites_group.update()
     playerUI.draw_allUI(player)  
 
-    # Update the display, Cap the frame rate
     pygame.display.update()
     clock.tick(gameSetting.FPS)
 
-     
 pygame.quit()

@@ -7,7 +7,7 @@ MOVE = 'move'
 DIE = "die"
 
 class Bat(pygame.sprite.Sprite):
-    def __init__(self, position, enemy_group, all_sprites_group, player):
+    def __init__(self, position, enemy_group, all_sprites_group, player, hit_sound):
         super().__init__(enemy_group, all_sprites_group)
         self.player = player
         self.position = pygame.math.Vector2(position)
@@ -15,7 +15,6 @@ class Bat(pygame.sprite.Sprite):
         self.sprite_sheets = {
             DIE: spritesheet.SpriteSheet("DIE",'Bat\Bat_Die.png', 10, 64, 64, 2, (0,0,0)),
             MOVE: spritesheet.SpriteSheet('MOVE', 'Bat\Bat_Flight.png', 8, 64, 64, 2, (0,0,0)),
-            #SHOOTING: spritesheet.SpriteSheet('playerSprite/shoot.png', animation_steps, 96, 96, 2, (0,0,0))
         }
         self.current_state = MOVE
         self.facing_right = True
@@ -30,10 +29,10 @@ class Bat(pygame.sprite.Sprite):
 
         self.direction = pygame.math.Vector2()
         self.velocity = pygame.math.Vector2()
-
+        self.hit_sound = hit_sound
         # Enemy Knockback
-        self.knockback_duration = 0  # Duration of knockback effect
-        self.knockback_velocity = pygame.math.Vector2()  # Velocity during knockback
+        self.knockback_duration = 0  
+        self.knockback_velocity = pygame.math.Vector2()  
 
         # Bat
         self.exp = BAT_EXP
@@ -66,7 +65,7 @@ class Bat(pygame.sprite.Sprite):
         if distance > 0:
             self.direction = (player_vector - enemy_vector).normalize()
         else:
-            self.direction = pygame.math.Vector2() # zero vector
+            self.direction = pygame.math.Vector2() 
 
         self.velocity = self.direction * self.speed
         self.position += self.velocity
@@ -78,9 +77,8 @@ class Bat(pygame.sprite.Sprite):
             return (vector_1 - vector_2).magnitude()
         
     def apply_knockback(self, knockback_direction, knockback_strength):
-        # Apply knockback effect
         self.knockback_velocity = knockback_direction.normalize() * knockback_strength
-        self.knockback_duration = 15  # Number of frames to apply knockback
+        self.knockback_duration = 8
 
     def take_damage(self, amount, knockback_direction=None, knockback_strength=100):
         self.current_hp -= amount
@@ -91,9 +89,11 @@ class Bat(pygame.sprite.Sprite):
         else:
             if knockback_direction is not None:
                 self.apply_knockback(knockback_direction, knockback_strength)
+        self.hit_sound.play()
 
     def die(self):
         self.player.current_exp += self.exp
+        self.hit_sound.play()
         self.kill()
 
     def update(self):
@@ -102,14 +102,11 @@ class Bat(pygame.sprite.Sprite):
     
         else:
             if self.knockback_duration > 0:
-                # Apply knockback movement
                 self.position += self.knockback_velocity
                 self.knockback_duration -= 1
                 if self.knockback_duration <= 0:
-                    # Reset knockback velocity
                     self.knockback_velocity = pygame.math.Vector2()
             else:
-                # Chase player if not in knockback
                 self.chase_player()
             self.rect.center = self.position
 
@@ -118,9 +115,7 @@ class Bat(pygame.sprite.Sprite):
 
     def animate_death(self):
         if self.current_sheets.current_frame == self.current_sheets.frame_count - 1:
-            # Animation has finished, so kill the bat
             self.die()
         else:
-            # Continue playing the death animation
             self.image = self.current_sheets.get_frame()
             self.rect = self.image.get_rect(center=self.rect.center)

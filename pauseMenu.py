@@ -5,7 +5,7 @@ from gameSetting import *
 class PauseMenu:
     def __init__(self, screen, menu, game_ui):
         self.screen = screen
-        self.menu = menu  # Pass the Menu instance to PauseMenu
+        self.menu = menu  
         self.font = menu.font
         self.paused = False
         self.game_ui = game_ui
@@ -18,22 +18,19 @@ class PauseMenu:
         self.game_ui.toggle_pause()
         
     def show_pause_screen(self):
-        # Dim the screen or display a pause menu background
+       
         overlay = pygame.Surface(self.screen.get_size())
-        overlay.set_alpha(128)  # Transparency value: 0 is fully transparent, 255 is fully opaque
-        overlay.fill((0, 0, 0))  # Black overlay
+        overlay.set_alpha(128)  
+        overlay.fill((0, 0, 0))  
         self.screen.blit(overlay, (0, 0))
 
-        # Display pause text
-        text = self.font.render('Paused', True, WHITE)
+        text = self.font.render('일시 정지', True, WHITE)
         text_rect = text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 4))
         self.screen.blit(text, text_rect)
 
-        # Draw buttons
-        resume_button = self.menu.draw_button('Resume Game', (self.screen.get_width() // 2, self.screen.get_height() // 2 - 50))
-        exit_button = self.menu.draw_button('Exit', (self.screen.get_width() // 2, self.screen.get_height() // 2 + 50), "Exit")
-
-        # Event handling for buttons
+        resume_button = self.menu.draw_button('게임 재개', (self.screen.get_width() // 2, self.screen.get_height() // 2 - 50))
+        exit_button = self.menu.draw_button('게임 종료', (self.screen.get_width() // 2, self.screen.get_height() // 2 + 50), "Exit")
+        
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:

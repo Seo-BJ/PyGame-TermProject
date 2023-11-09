@@ -3,7 +3,7 @@ import sys
 
 # Define colors
 WHITE = (255, 255, 255)
-
+RED = (255, 0, 0)
 class Menu:
     def __init__(self, screen, font):
         self.screen = screen
@@ -47,4 +47,25 @@ class Menu:
                         sys.exit()
 
             pygame.display.update()
+            self.clock.tick(60)
+
+    def game_over(self):
+        self.running = True
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    return 'exit'
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    exit_button.collidepoint(event.pos)
+                    self.running = False
+                    pygame.quit()
+                    sys.exit()
+                    return 'exit'
+
+            self.screen.fill((0, 0, 0))  # Make sure this is before drawing anything else
+            self.screen.blit(self.font.render('게임 오버!', True, RED), (self.screen.get_width() // 2 - 100, self.screen.get_height() // 2 - 100))
+            exit_button = self.draw_button('게임 종료', (self.screen.get_width() // 2, self.screen.get_height() // 2 + 100), "Exit")
+
+            pygame.display.update()  # Update the display after drawing
             self.clock.tick(60)

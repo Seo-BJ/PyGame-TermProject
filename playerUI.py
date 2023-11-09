@@ -19,10 +19,10 @@ class PlayerUI:
         self.is_paused = False
 
         # 경험치 Bar 
-        self.player_current_exp = player.current_exp  # You need to track this in the player class
-        self.player_max_exp = player.max_exp  # You need to set this in the player class
+        self.player_current_exp = player.current_exp 
+        self.player_max_exp = player.max_exp  
         self.exp_bar_height = 20
-
+        
         # 체력 Bar
         self.healthbar_blinking = False
         self.healthbar_blink_duration = PLAYER_INVINCIBLE_DURATION  
@@ -50,8 +50,11 @@ class PlayerUI:
 
     def draw_timer(self):
         time_up = self.update_timer()
-        if time_up == 'time_up':
-            menu = Menu(self.screen)
+        if time_up == '게임':
+            menu = Menu(self.screen, self.font)
+            menu.game_over()
+        elif time_up == 'time_up':
+            menu = Menu(self.screen, self.font)
             menu.game_over()
 
     def toggle_pause(self):
@@ -67,36 +70,34 @@ class PlayerUI:
     def health_bar(self, screen, pos, size, border_color, inner_color, current, max_health):
         border_rect = pygame.Rect(pos, size)
         inner_rect = pygame.Rect(pos, (size[0] * (current / max_health), size[1]))
-        pygame.draw.rect(screen, border_color, border_rect, 2)  # Draw border
-        pygame.draw.rect(screen, inner_color, inner_rect)  # Draw inner health bar
+        pygame.draw.rect(screen, border_color, border_rect, 2) 
+        pygame.draw.rect(screen, inner_color, inner_rect)  
     
     def draw_exp_bar(self):
         exp_bar_width = (self.player_current_exp / self.player_max_exp) * self.screen.get_width()
         border_rect = pygame.Rect(0, 0, self.screen.get_width(), self.exp_bar_height)
         inner_rect = pygame.Rect(0, 0, exp_bar_width, self.exp_bar_height)
 
-        # Draw the EXP bar
-        pygame.draw.rect(self.screen, (255, 255, 255), border_rect, 2)  
-        pygame.draw.rect(self.screen, (0, 255, 0), inner_rect)  
+        pygame.draw.rect(self.screen, (53, 23, 76), border_rect, 2)  
+        pygame.draw.rect(self.screen, (53, 23, 76), inner_rect)  
 
     def draw_health_bar(self):
         if not self.healthbar_blinking or (pygame.time.get_ticks() - self.healthbar_blink_start_time) // self.healthbar_blink_interval % 2 == 0:
-            health_bar_y_position = self.exp_bar_height + 20  # Adjust this value if necessary
-            health_bar_width = self.screen.get_width() // 5  # One-fifth of the screen width
+            health_bar_y_position = self.exp_bar_height + 20 
+            health_bar_width = self.screen.get_width() // 5  
             self.health_bar(self.screen,
-                (10, health_bar_y_position),  # Position to the left with the same horizontal margin
-                (health_bar_width, 20),  # Double the height of the health bar
-                (255, 0, 0),  # Color of the border (red)
-                (0, 255, 0),  # Color of the inner bar (green)
+                (10, health_bar_y_position), 
+                (health_bar_width, 20),  
+                (132, 33, 55),  
+                (132, 33, 55),  
                 self.player_current_hp,
                 self.player_max_hp
             )
-     # Add a method to start the health bar blinking
+
     def start_healthbar_blink(self):
         self.healthbar_blinking = True
         self.healthbar_blink_start_time = pygame.time.get_ticks()
 
-    # Add a method to update the health bar blink effect
     def update_healthbar_blink(self):
         if self.healthbar_blinking:
             current_time = pygame.time.get_ticks()
