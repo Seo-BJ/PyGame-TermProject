@@ -1,6 +1,7 @@
 # PyGame-TermProject
 
 2023년 2학기 게임 프로그래밍 입문
+
 수학과 서범준 Project #2 Desighn & Develop Your Own 
 
 목표 : 파이게임을 이용해서 탑다운 슈터 장르 게임을 제작하기
